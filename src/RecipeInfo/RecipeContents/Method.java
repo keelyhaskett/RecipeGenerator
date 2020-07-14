@@ -1,3 +1,5 @@
+package RecipeInfo.RecipeContents;
+
 import java.util.ArrayList;
 
 public class Method {

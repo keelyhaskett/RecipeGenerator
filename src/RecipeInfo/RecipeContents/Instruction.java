@@ -1,3 +1,5 @@
+package RecipeInfo.RecipeContents;
+
 public class Instruction {
     String step;
 

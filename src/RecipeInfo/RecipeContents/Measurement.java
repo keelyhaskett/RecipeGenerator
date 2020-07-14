@@ -1,3 +1,5 @@
+package RecipeInfo.RecipeContents;
+
 public class Measurement {
     private final double amount;
     private final UnitsOfMeasurement unit;

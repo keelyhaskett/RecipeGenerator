@@ -1,6 +1,10 @@
+import RecipeInfo.Recipe;
+import RecipeInfo.RecipeCategories.RecipeClassifier;
+
 import java.util.HashSet;
 import java.util.List;
 
+@SuppressWarnings("rawtypes")
 public class RecipeBook {
     private HashSet<Recipe> recipes;
 
@@ -21,7 +25,7 @@ public class RecipeBook {
      * @param e     Enum value to find recipes that match
      * @return      Returns a list of matching recipes
      */
-    public List<Recipe> getRecipesWhere(Enum e) {
+    public List<Recipe> getRecipesWhere(RecipeClassifier e) {
 
         //TODO: add functionality when descriptive enums are implemented (e.g type of meal, meat content, time etc)
         return null;
