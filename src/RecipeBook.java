@@ -1,10 +1,9 @@
-import RecipeInfo.Recipe;
-import RecipeInfo.RecipeCategories.RecipeClassifier;
+import recipeInfo.Recipe;
+import recipeInfo.recipeCategories.RecipeClassifier;
 
 import java.util.HashSet;
 import java.util.List;
 
-@SuppressWarnings("rawtypes")
 public class RecipeBook {
     private HashSet<Recipe> recipes;
 

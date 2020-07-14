@@ -1,8 +1,8 @@
-package RecipeInfo;
+package recipeInfo;
 
-import RecipeInfo.RecipeContents.Ingredient;
-import RecipeInfo.RecipeContents.Measurement;
-import RecipeInfo.RecipeContents.Method;
+import recipeInfo.recipeContents.Ingredient;
+import recipeInfo.recipeContents.Measurement;
+import recipeInfo.recipeContents.Method;
 
 import java.time.Duration;
 import java.util.HashMap;

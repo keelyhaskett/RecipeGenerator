@@ -1,4 +1,4 @@
-package RecipeInfo.RecipeContents;
+package recipeInfo.recipeContents;
 
 public class Instruction {
     String step;

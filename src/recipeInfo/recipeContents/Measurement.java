@@ -1,4 +1,4 @@
-package RecipeInfo.RecipeContents;
+package recipeInfo.recipeContents;
 
 public class Measurement {
     private final double amount;

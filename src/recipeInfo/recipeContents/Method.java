@@ -1,4 +1,4 @@
-package RecipeInfo.RecipeContents;
+package recipeInfo.recipeContents;
 
 import java.util.ArrayList;
 
