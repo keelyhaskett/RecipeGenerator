@@ -1,6 +1,6 @@
-import javax.swing.*;
 
-public class RecipeGenerator {
+
+public class RecipeGenerator extends GUI {
     public RecipeBook recipes =  new RecipeBook();
 
 
@@ -8,8 +8,7 @@ public class RecipeGenerator {
     //TODO: Write parser and file writer
 
     public static void main(String[] args) {
-        JFrame frame = new GUI("Recipe Generator");
-        frame.setVisible(true);
+        new RecipeGenerator();
 
     }
 }
