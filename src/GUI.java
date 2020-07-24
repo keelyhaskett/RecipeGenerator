@@ -2,6 +2,9 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
 
 /**
  *
@@ -9,10 +12,12 @@ import java.awt.*;
 public abstract class GUI {
     private static final int START_WINDOW_BUTTON_TEXT_SIZE = 30;
     private static final int START_WINDOW_TITLE_TEXT_SIZE = 60;
+    private static final int MAIN_WINDOW_BUTTON_TEXT_SIZE = 15;
 
     private final Dimension startWindowButtonSize = new Dimension(100, 60);
     private final Dimension startWindowMinimumSize = new Dimension(800, 500);
     private final Dimension mainWindowButtonSize = new Dimension(50, 40);
+    private final Insets buttonPanelInsets = new Insets(0, 0, 10, 0);
 
     private final Color bgCol = new Color(170, 210, 240);
     private final Color primaryTextCol = new Color(68, 55, 66);
@@ -44,11 +49,19 @@ public abstract class GUI {
         Button start = new Button("Start");
         start.setPreferredSize(startWindowButtonSize);
         start.setFont(new Font("Helvetica", Font.PLAIN, START_WINDOW_BUTTON_TEXT_SIZE));
+        start.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) { buildMainWindow(); }
+        });
 
         //create and format the quit button
         Button quit = new Button("Quit");
         quit.setPreferredSize(startWindowButtonSize);
         quit.setFont(new Font("Helvetica", Font.PLAIN, START_WINDOW_BUTTON_TEXT_SIZE));
+        quit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) { System.exit(0); }
+        });
 
         //create and format the title text
         JLabel title = new JLabel("Recipe Generator");
@@ -108,24 +121,70 @@ public abstract class GUI {
 
         JPanel buttonPanel = new JPanel();
 
-
-        JButton load = new JButton("Load");
+        Button load = new Button("Load");
         JFileChooser fileChooser = new JFileChooser();
+        load.setPreferredSize(mainWindowButtonSize);
+        load.setFont(new Font("Helvetica", Font.PLAIN, MAIN_WINDOW_BUTTON_TEXT_SIZE));
+        load.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                fileChooser.setCurrentDirectory(new File("."));
+                fileChooser.setDialogTitle("Select recipe file.");
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
+                if (fileChooser.showOpenDialog(mainWindow) == JFileChooser.APPROVE_OPTION) {
+                    File file = fileChooser.getSelectedFile();
+                    //TODO: parse file here and return some sort of runtime exception if it doesn't parse properly
 
-        JButton create = new JButton("Create");
+                }
+            }
+        });
 
+        Button create = new Button("Create");
+        create.setPreferredSize(mainWindowButtonSize);
+        create.setFont(new Font("Helvetica", Font.PLAIN, MAIN_WINDOW_BUTTON_TEXT_SIZE));
+        create.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) { buildRecipeFormWindow(); }
+        });
 
-        JButton generate = new JButton("Generate");
+        Button generate = new Button("Generate");
+        generate.setPreferredSize(mainWindowButtonSize);
+        generate.setFont(new Font("Helvetica", Font.PLAIN, MAIN_WINDOW_BUTTON_TEXT_SIZE));
+        generate.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) { buildGeneratedRecipesWindow(); }
+        });
 
-
-        JButton quit = new JButton("Quit");
-
+        Button quit = new Button("Quit");
+        quit.setPreferredSize(mainWindowButtonSize);
+        quit.setFont(new Font("Helvetica", Font.PLAIN, MAIN_WINDOW_BUTTON_TEXT_SIZE));
+        quit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) { System.exit(0); }
+        });
 
 
         buttonPanel.setLayout(new GridBagLayout());
         GridBagConstraints constraints = new GridBagConstraints();
 
+        constraints.ipadx = 30;
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        constraints.insets = buttonPanelInsets;
+        buttonPanel.add(load, constraints);
+
+        constraints.gridy = 1;
+        constraints.insets = buttonPanelInsets;
+        buttonPanel.add(create, constraints);
+
+        constraints.gridy = 2;
+        constraints.insets = buttonPanelInsets;
+        buttonPanel.add(generate, constraints);
+
+        constraints.gridy = 3;
+        constraints.insets = new Insets(50, 0, 0, 0);
+        buttonPanel.add(quit, constraints);
 
 
         JPanel recipePanel = new JPanel();
