@@ -7,11 +7,11 @@ import java.awt.event.MouseListener;
  *
  */
 public abstract class GUI {
-    private JPanel mainPanel;
-    private JFrame startWindow;
-    private JFrame mainWindow;
-    private JFrame generationWindow;
-    private JFrame recipeFormWindow;
+    private static final int START_WINDOW_BUTTON_TEXT_SIZE = 30;
+    private static final int START_WINDOW_TITLE_TEXT_SIZE = 60;
+
+    private final Dimension startWindowButtonSize = new Dimension(100, 60);
+    private final Dimension startWindowMinimumSize = new Dimension(800, 500);
 
     private final Color bgCol = new Color(170, 210, 240);
     private final Color primaryTextCol = new Color(68, 55, 66);
@@ -19,18 +19,29 @@ public abstract class GUI {
     private final Color hoverTextCol = new Color(237, 233, 237);
     private final Color hoverButCol = new Color(39, 144, 81);
 
+    private JFrame startWindow;
+    private JFrame mainWindow;
+    private JFrame generationWindow;
+    private JFrame recipeFormWindow;
+
+
+
     public GUI() {
         buildStartWindow();
     }
 
     /**
-     *
+     *  Builds the first window to open when the program is run.
+     *  Contains a title label with the name of the program, a start button,
+     *  which when clicked runs the method to open the main window (and close
+     *  this start window), and a quit button, which closes the program.
+     *  Window is built with a JFrame using GridBag layout
      */
     private void buildStartWindow() {
         //create and format the start button
         JButton start = new JButton("Start");
-        start.setPreferredSize(new Dimension(100, 60));
-        start.setFont(new Font("Helvetica", Font.PLAIN, 30));
+        start.setPreferredSize(startWindowButtonSize);
+        start.setFont(new Font("Helvetica", Font.PLAIN, START_WINDOW_BUTTON_TEXT_SIZE));
         start.setForeground(primaryTextCol);
         start.setBackground(primaryButCol);
         start.setFocusPainted(false); //turns off grey border around text on press
@@ -64,8 +75,8 @@ public abstract class GUI {
 
         //create and format the quit button
         JButton quit = new JButton("Quit");
-        quit.setPreferredSize(new Dimension(100, 60));
-        quit.setFont(new Font("Helvetica", Font.PLAIN, 30));
+        quit.setPreferredSize(startWindowButtonSize);
+        quit.setFont(new Font("Helvetica", Font.PLAIN, START_WINDOW_BUTTON_TEXT_SIZE));
         quit.setForeground(primaryTextCol);
         quit.setBackground(primaryButCol);
         quit.setFocusPainted(false); //turns off grey border around text on press
@@ -97,9 +108,8 @@ public abstract class GUI {
         });
 
         //create and format the title text
-        JLabel title = new JLabel();
-        title.setText("Recipe Generator");
-        title.setFont(new Font("Helvetica", Font.ITALIC, 60));
+        JLabel title = new JLabel("Recipe Generator");
+        title.setFont(new Font("Helvetica", Font.ITALIC, START_WINDOW_TITLE_TEXT_SIZE));
         title.setForeground(primaryTextCol);
         title.setHorizontalAlignment(SwingConstants.CENTER); // makes sure the title is always centered on the form
 
@@ -110,8 +120,7 @@ public abstract class GUI {
         startWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //makes the instance finish when GUI is closed
         startWindow.setLayout(new GridBagLayout());
         startWindow.getContentPane().setBackground(bgCol);
-        startWindow.setMinimumSize(new Dimension(800, 500)); //makes sure the frame stays at a nice
-                                                                         // viewable size.
+        startWindow.setMinimumSize(startWindowMinimumSize); //makes sure the frame stays at a nice viewable size.
 
         GridBagConstraints constraints = new GridBagConstraints();
 
@@ -121,7 +130,7 @@ public abstract class GUI {
         //set the element placing to a 0,0 pos
         constraints.gridx = 0;
         constraints.gridy = 0;
-        constraints.gridwidth = 3; //make the element tfake up 3 column positions
+        constraints.gridwidth = 3; //make the element take up 3 column positions
         constraints.weightx = 1.0; //forces the title to take up as much space as possible
         startWindow.add(title, constraints);
 
@@ -142,7 +151,7 @@ public abstract class GUI {
 
 
         //startWindow.setContentPane(mainPanel);
-        startWindow.pack();
+        startWindow.pack(); //makes all frame contents at or above their preferred size
         startWindow.setLocationRelativeTo(null); //centers the window on the screen
         startWindow.setVisible(true); //so we can see the gui
     }
@@ -161,7 +170,7 @@ public abstract class GUI {
         //TODO: make 3rd window on generation showing the titles of the generated recipes.
 
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //makes the instance finish when GUI is closed
-        mainWindow.setContentPane(mainPanel);
+        //mainWindow.setContentPane(mainPanel);
         mainWindow.pack();
         mainWindow.setVisible(true); //so we can see the gui
 
