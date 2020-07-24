@@ -1,7 +1,7 @@
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 
 /**
  *
@@ -12,12 +12,14 @@ public abstract class GUI {
 
     private final Dimension startWindowButtonSize = new Dimension(100, 60);
     private final Dimension startWindowMinimumSize = new Dimension(800, 500);
+    private final Dimension mainWindowButtonSize = new Dimension(50, 40);
 
     private final Color bgCol = new Color(170, 210, 240);
     private final Color primaryTextCol = new Color(68, 55, 66);
     private final Color primaryButCol = new Color(79, 180, 119);
     private final Color hoverTextCol = new Color(237, 233, 237);
     private final Color hoverButCol = new Color(39, 144, 81);
+    private final Color pressedButCol = new Color(5, 78, 34);
 
     private JFrame startWindow;
     private JFrame mainWindow;
@@ -39,73 +41,14 @@ public abstract class GUI {
      */
     private void buildStartWindow() {
         //create and format the start button
-        JButton start = new JButton("Start");
+        Button start = new Button("Start");
         start.setPreferredSize(startWindowButtonSize);
         start.setFont(new Font("Helvetica", Font.PLAIN, START_WINDOW_BUTTON_TEXT_SIZE));
-        start.setForeground(primaryTextCol);
-        start.setBackground(primaryButCol);
-        start.setFocusPainted(false); //turns off grey border around text on press
-        //TODO: remove white overlay on press, need to mess with icons?
-        start.addMouseListener(new MouseListener() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                buildMainWindow(); //opens the main window
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) { }
-
-            @Override
-            public void mouseReleased(MouseEvent e) { }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                //adjust to hover colours on hover
-                start.setForeground(hoverTextCol);
-                start.setBackground(hoverButCol);
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                //adjust to non-hover colours off hover
-                start.setForeground(primaryTextCol);
-                start.setBackground(primaryButCol);
-            }
-        });
 
         //create and format the quit button
-        JButton quit = new JButton("Quit");
+        Button quit = new Button("Quit");
         quit.setPreferredSize(startWindowButtonSize);
         quit.setFont(new Font("Helvetica", Font.PLAIN, START_WINDOW_BUTTON_TEXT_SIZE));
-        quit.setForeground(primaryTextCol);
-        quit.setBackground(primaryButCol);
-        quit.setFocusPainted(false); //turns off grey border around text on press
-        quit.addMouseListener(new MouseListener() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                System.exit(0); //ends the program
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) { }
-
-            @Override
-            public void mouseReleased(MouseEvent e) { }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                //adjust to hover colours on hover
-                quit.setForeground(hoverTextCol);
-                quit.setBackground(hoverButCol);
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                //adjust to non-hover colours off hover
-                quit.setForeground(primaryTextCol);
-                quit.setBackground(primaryButCol);
-            }
-        });
 
         //create and format the title text
         JLabel title = new JLabel("Recipe Generator");
@@ -163,15 +106,38 @@ public abstract class GUI {
         mainWindow = new JFrame("Recipe Generator");
         startWindow.setVisible(false); //make the start window go away
 
-        //TODO: create load, generate, and quit buttons
+        JPanel buttonPanel = new JPanel();
+
+
+        JButton load = new JButton("Load");
+        JFileChooser fileChooser = new JFileChooser();
+
+
+        JButton create = new JButton("Create");
+
+
+        JButton generate = new JButton("Generate");
+
+
+        JButton quit = new JButton("Quit");
+
+
+
+        buttonPanel.setLayout(new GridBagLayout());
+        GridBagConstraints constraints = new GridBagConstraints();
+
+
+
+        JPanel recipePanel = new JPanel();
 
         //TODO: allow for 3 panels, button panel, recipes total, and something else
 
-        //TODO: make 3rd window on generation showing the titles of the generated recipes.
 
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //makes the instance finish when GUI is closed
         //mainWindow.setContentPane(mainPanel);
+        mainWindow.setLayout(new FlowLayout()); //TODO: maybe make this BorderLayout instead? look into it
         mainWindow.pack();
+        mainWindow.setLocationRelativeTo(null); //centers the window on the screen
         mainWindow.setVisible(true); //so we can see the gui
 
 
@@ -206,6 +172,45 @@ public abstract class GUI {
         //TODO: make panel for form
         recipeFormWindow.pack();
         recipeFormWindow.setVisible(true);
+    }
+
+    /**
+     * Button innerclass allows more control over the appearance and actions of the buttons in the GUI,
+     * but as it extends JButton, it is still recognizable as a swing component.
+     */
+    private class Button extends JButton {
+
+        public Button (String text) {
+            super(text);
+            setContentAreaFilled(false); //stops the colour turning grey when pressed
+            setOpaque(true); //ensures every pixel is painted
+
+            setForeground(primaryTextCol);
+            setBackground(primaryButCol);
+            setFocusPainted(false); //turns off grey border around text on press
+            setText(text);
+
+            addChangeListener(new ChangeListener() {
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    if (getModel().isPressed()) {
+                        //adjust to pressed colouration
+                        setForeground(hoverTextCol);
+                        setBackground(pressedButCol);
+                    }
+                    else if (getModel().isRollover()) {
+                        //adjust to hover colouration
+                        setForeground(hoverTextCol);
+                        setBackground(hoverButCol);
+                    }
+                    else {
+                        //adjust to regular colouration
+                        setForeground(primaryTextCol);
+                        setBackground(primaryButCol);
+                    }
+                }
+            });
+        }
     }
 
 }
