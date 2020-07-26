@@ -10,14 +10,24 @@ import java.io.File;
  *
  */
 public abstract class GUI {
+
+    protected abstract RecipeBook getRecipes();
+
+
+
     private static final int START_WINDOW_BUTTON_TEXT_SIZE = 30;
     private static final int START_WINDOW_TITLE_TEXT_SIZE = 60;
-    private static final int MAIN_WINDOW_BUTTON_TEXT_SIZE = 15;
+    private static final int MAIN_WINDOW_BUTTON_TEXT_SIZE = 20;
+    private static final int RECIPE_LIST_TEXT_SIZE = 15;
 
     private final Dimension startWindowButtonSize = new Dimension(100, 60);
     private final Dimension startWindowMinimumSize = new Dimension(800, 500);
-    private final Dimension mainWindowButtonSize = new Dimension(50, 40);
-    private final Insets buttonPanelInsets = new Insets(0, 0, 10, 0);
+    private final Dimension mainWindowButtonSize = new Dimension(100, 60);
+    private final Dimension recipeListPreferredSize = new Dimension(300, 600);
+    private final Insets buttonPanelInsets = new Insets(15, 0, 15, 0);
+    private final Insets buttonPanelQuitInsets = new Insets(recipeListPreferredSize.height -
+                                                ((buttonPanelInsets.top + buttonPanelInsets.bottom) * 3 +
+                                                 (mainWindowButtonSize.height * 4) - 30), 0, 30, 0);
 
     private final Color bgCol = new Color(170, 210, 240);
     private final Color primaryTextCol = new Color(68, 55, 66);
@@ -118,8 +128,12 @@ public abstract class GUI {
     private void buildMainWindow() {
         mainWindow = new JFrame("Recipe Generator");
         startWindow.setVisible(false); //make the start window go away
+        mainWindow.getContentPane().setBackground(bgCol);
 
         JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(bgCol);
+
+        //TODO: consider recipe edit button??
 
         Button load = new Button("Load");
         JFileChooser fileChooser = new JFileChooser();
@@ -183,18 +197,34 @@ public abstract class GUI {
         buttonPanel.add(generate, constraints);
 
         constraints.gridy = 3;
-        constraints.insets = new Insets(50, 0, 0, 0);
+        constraints.insets = buttonPanelQuitInsets;
         buttonPanel.add(quit, constraints);
 
 
         JPanel recipePanel = new JPanel();
+        recipePanel.setLayout(new BorderLayout());
 
-        //TODO: allow for 3 panels, button panel, recipes total, and something else
+        JList<String> recipes = new JList<>();
+        recipes.setListData(getRecipes().namesToArray());
+        recipes.setLayoutOrientation(JList.VERTICAL);
+        recipes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); //TODO: change this to multiple selection when understanding
+        recipes.setFont(new Font("Helvetica", Font.PLAIN, RECIPE_LIST_TEXT_SIZE));
+        JScrollPane recipeScroll = new JScrollPane(recipes);
+        recipeScroll.createVerticalScrollBar();
+        recipeScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        recipeScroll.setPreferredSize(recipeListPreferredSize);
+
+        recipePanel.add(recipeScroll, BorderLayout.CENTER);
+
+
+        //TODO: figure out purpose of 3rd panel
 
 
         mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //makes the instance finish when GUI is closed
-        //mainWindow.setContentPane(mainPanel);
-        mainWindow.setLayout(new FlowLayout()); //TODO: maybe make this BorderLayout instead? look into it
+        mainWindow.setLayout(new FlowLayout(FlowLayout.CENTER, 30, 0)); //TODO: maybe make this BorderLayout instead? look into it
+        mainWindow.add(buttonPanel);
+        mainWindow.add(recipePanel);
+
         mainWindow.pack();
         mainWindow.setLocationRelativeTo(null); //centers the window on the screen
         mainWindow.setVisible(true); //so we can see the gui
