@@ -1,6 +1,7 @@
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -8,6 +9,7 @@ import java.io.File;
 
 /**
  *
+ * @author Keely Haskett
  */
 public abstract class GUI {
 
@@ -19,6 +21,8 @@ public abstract class GUI {
     private static final int START_WINDOW_TITLE_TEXT_SIZE = 60;
     private static final int MAIN_WINDOW_BUTTON_TEXT_SIZE = 20;
     private static final int RECIPE_LIST_TEXT_SIZE = 15;
+    private static final int RECIPE_FORM_TEXT_SIZE = 20;
+    private static final int RECIPE_FORM_COMPONENT_TEXT_SIZE = 15;
 
     private final Dimension startWindowButtonSize = new Dimension(100, 60);
     private final Dimension startWindowMinimumSize = new Dimension(800, 500);
@@ -123,7 +127,18 @@ public abstract class GUI {
     }
 
     /**
+     *  The main window hosts majority of the functionality of the program.
+     *  It includes 2 panels, the first of which containing 4 buttons:
+     *  A load button which allows the user to select a preformed recipe file, which the parser will process and
+     *  create a recipe object based off, if the file is in proper format.
+     *  A create button, which allows the user to build a recipe file with information in a prebuilt form, which
+     *  will both create a recipe, and also produce a formatted recipe file for future use.
+     *  A generate button, which will open a window to allow the user to select their recipe generation options, and
+     *  then the program will give a set of recipes (and a shopping list eventually) based on the user's specifications.
+     *  A quit button which exits the program.
      *
+     *  The second panel features a list of recipes, and will eventually allow the user to remove any recipes from the
+     *  recipe book that they do not want to include.
      */
     private void buildMainWindow() {
         mainWindow = new JFrame("Recipe Generator");
@@ -139,6 +154,7 @@ public abstract class GUI {
         JFileChooser fileChooser = new JFileChooser();
         load.setPreferredSize(mainWindowButtonSize);
         load.setFont(new Font("Helvetica", Font.PLAIN, MAIN_WINDOW_BUTTON_TEXT_SIZE));
+        load.setToolTipText("Load a recipe file.");
         load.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -146,7 +162,8 @@ public abstract class GUI {
                 fileChooser.setDialogTitle("Select recipe file.");
                 fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
-                if (fileChooser.showOpenDialog(mainWindow) == JFileChooser.APPROVE_OPTION) {
+                if (fileChooser.showOpenDialog(mainWindow) == JFileChooser.APPROVE_OPTION) { //if the user chose an
+                                                                                            //acceptable file
                     File file = fileChooser.getSelectedFile();
                     //TODO: parse file here and return some sort of runtime exception if it doesn't parse properly
 
@@ -157,25 +174,28 @@ public abstract class GUI {
         Button create = new Button("Create");
         create.setPreferredSize(mainWindowButtonSize);
         create.setFont(new Font("Helvetica", Font.PLAIN, MAIN_WINDOW_BUTTON_TEXT_SIZE));
+        create.setToolTipText("Create recipe file by filling in recipe form.");
         create.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) { buildRecipeFormWindow(); }
+            public void actionPerformed(ActionEvent e) { buildRecipeFormWindow(); } //open the form to create recipe file
         });
 
         Button generate = new Button("Generate");
         generate.setPreferredSize(mainWindowButtonSize);
         generate.setFont(new Font("Helvetica", Font.PLAIN, MAIN_WINDOW_BUTTON_TEXT_SIZE));
+        generate.setToolTipText("Select some options, and generate recipes.");
         generate.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) { buildGeneratedRecipesWindow(); }
+            public void actionPerformed(ActionEvent e) { buildGeneratedRecipesWindow(); } //open generation window
         });
 
         Button quit = new Button("Quit");
         quit.setPreferredSize(mainWindowButtonSize);
         quit.setFont(new Font("Helvetica", Font.PLAIN, MAIN_WINDOW_BUTTON_TEXT_SIZE));
+        quit.setToolTipText("Close program.");
         quit.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) { System.exit(0); }
+            public void actionPerformed(ActionEvent e) { System.exit(0); } //close program
         });
 
 
@@ -205,13 +225,13 @@ public abstract class GUI {
         recipePanel.setLayout(new BorderLayout());
 
         JList<String> recipes = new JList<>();
-        recipes.setListData(getRecipes().namesToArray());
+        recipes.setListData(getRecipes().namesToArray()); //add all of the name of recipes in recipebook to the list
         recipes.setLayoutOrientation(JList.VERTICAL);
         recipes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); //TODO: change this to multiple selection when understanding
         recipes.setFont(new Font("Helvetica", Font.PLAIN, RECIPE_LIST_TEXT_SIZE));
         JScrollPane recipeScroll = new JScrollPane(recipes);
         recipeScroll.createVerticalScrollBar();
-        recipeScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        recipeScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED); //only show scroll when necessary
         recipeScroll.setPreferredSize(recipeListPreferredSize);
 
         recipePanel.add(recipeScroll, BorderLayout.CENTER);
@@ -254,8 +274,65 @@ public abstract class GUI {
      */
     private void buildRecipeFormWindow() {
         recipeFormWindow = new JFrame("Enter your recipe");
+        recipeFormWindow.getContentPane().setBackground(bgCol);
 
-        //TODO: code for a form that lets user fill out a recipe and a file is created based on that
+        JLabel nameLabel = new JLabel("Name:");
+        nameLabel.setFont(new Font("Helvetica", Font.PLAIN, RECIPE_FORM_TEXT_SIZE));
+        nameLabel.setForeground(primaryTextCol);
+
+        JLabel servesLabel = new JLabel("Serves:");
+        servesLabel.setFont(new Font("Helvetica", Font.PLAIN, RECIPE_FORM_TEXT_SIZE));
+        servesLabel.setForeground(primaryTextCol);
+
+        JLabel prepLabel = new JLabel("Prep Time:");
+        prepLabel.setFont(new Font("Helvetica", Font.PLAIN, RECIPE_FORM_TEXT_SIZE));
+        prepLabel.setForeground(primaryTextCol);
+
+        JLabel cookLabel = new JLabel("Cook Time:");
+        cookLabel.setFont(new Font("Helvetica", Font.PLAIN, RECIPE_FORM_TEXT_SIZE));
+        cookLabel.setForeground(primaryTextCol);
+
+        JLabel ingredientsLabel = new JLabel("Ingredients");
+        ingredientsLabel.setFont(new Font("Helvetica", Font.PLAIN, RECIPE_FORM_TEXT_SIZE));
+        ingredientsLabel.setForeground(primaryTextCol);
+
+        JLabel methodLabel = new JLabel("Method");
+        methodLabel.setFont(new Font("Helvetica", Font.PLAIN, RECIPE_FORM_TEXT_SIZE));
+        methodLabel.setForeground(primaryTextCol);
+
+        JTextField nameField = new JTextField();
+
+        JTextField prepField = new JTextField();
+
+        JTextField cookField = new JTextField();
+
+        JTextField ingredientsField = new JTextField();
+
+        JTextField methodField = new JTextField();
+
+        JSlider servesSlider = new JSlider();
+
+        JList<String> ingredientsList = new JList<>();
+
+        JList<String> methodList = new JList<>();
+
+        JScrollPane ingredientsScroll = new JScrollPane();
+
+        JScrollPane methodScroll = new JScrollPane();
+
+        Button ingredientButton = new Button("OK!");
+
+        Button methodButton = new Button("OK!");
+
+        Button cancelButton = new Button("Cancel");
+
+        Button doneButton = new Button("Done");
+
+        //TODO: insert checkboxes and radio buttons for further specifications eg dietary and meat contents
+
+
+        recipeFormWindow.setLayout(new GridBagLayout());
+        GridBagConstraints constraints = new GridBagConstraints();
 
         recipeFormWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); //ideally will have a cancel button that we prefer user to use
         //TODO: make panel for form
@@ -301,5 +378,4 @@ public abstract class GUI {
             });
         }
     }
-
 }
