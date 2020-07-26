@@ -26,6 +26,8 @@ public class Recipe {
         this.serves = s;
     }
 
+    public String getName() { return name; }
+
     @Override
     public String toString() {
         StringBuilder b =  new StringBuilder();

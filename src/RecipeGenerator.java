@@ -1,7 +1,7 @@
 
 
 public class RecipeGenerator extends GUI {
-    public RecipeBook recipes =  new RecipeBook();
+    private RecipeBook recipes =  new RecipeBook();
 
 
     //TODO: Using GUI designer, create a GUI, maybe own class?
@@ -10,5 +10,10 @@ public class RecipeGenerator extends GUI {
     public static void main(String[] args) {
         new RecipeGenerator();
 
+    }
+
+    @Override
+    protected RecipeBook getRecipes() {
+        return recipes;
     }
 }

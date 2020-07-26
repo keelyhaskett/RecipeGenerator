@@ -7,7 +7,7 @@ import java.util.List;
 public class RecipeBook {
     private HashSet<Recipe> recipes;
 
-    public RecipeBook(){}
+    public RecipeBook(){ recipes = new HashSet<>(); }
 
     public RecipeBook(HashSet<Recipe> r) {
         this.recipes = r;
@@ -17,6 +17,15 @@ public class RecipeBook {
         recipes.add(r);
     }
 
+    public String[] namesToArray() {
+        String[] names = new String[recipes.size()];
+        int count = 0;
+        for (Recipe r : recipes) {
+            names[count] = r.getName();
+            count++;
+        }
+        return names;
+    }
 
     /**
      * When passed an enum value, method will fetch all relevant recipes
