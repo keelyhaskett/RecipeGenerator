@@ -6,6 +6,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  *
@@ -28,10 +29,15 @@ public abstract class GUI {
     private final Dimension startWindowMinimumSize = new Dimension(800, 500);
     private final Dimension mainWindowButtonSize = new Dimension(100, 60);
     private final Dimension recipeListPreferredSize = new Dimension(300, 600);
+    private final Dimension recipeFormButtonSize = new Dimension(80, 50);
     private final Insets buttonPanelInsets = new Insets(15, 0, 15, 0);
     private final Insets buttonPanelQuitInsets = new Insets(recipeListPreferredSize.height -
                                                 ((buttonPanelInsets.top + buttonPanelInsets.bottom) * 3 +
                                                  (mainWindowButtonSize.height * 4) - 30), 0, 30, 0);
+    private final Font startWindowButtonFont = new Font("Helvetica", Font.PLAIN, START_WINDOW_BUTTON_TEXT_SIZE);
+    private final Font mainWindowButtonFont = new Font("Helvetica", Font.PLAIN, MAIN_WINDOW_BUTTON_TEXT_SIZE);
+    private final Font recipeFormWindowLabelFont = new Font("Helvetica", Font.PLAIN, RECIPE_FORM_TEXT_SIZE);
+    private final Font recipeFormWindowComponentFont = new Font("Helvetica", Font.ITALIC, RECIPE_FORM_COMPONENT_TEXT_SIZE);
 
     private final Color bgCol = new Color(170, 210, 240);
     private final Color primaryTextCol = new Color(68, 55, 66);
@@ -62,7 +68,7 @@ public abstract class GUI {
         //create and format the start button
         Button start = new Button("Start");
         start.setPreferredSize(startWindowButtonSize);
-        start.setFont(new Font("Helvetica", Font.PLAIN, START_WINDOW_BUTTON_TEXT_SIZE));
+        start.setFont(startWindowButtonFont);
         start.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) { buildMainWindow(); }
@@ -71,7 +77,7 @@ public abstract class GUI {
         //create and format the quit button
         Button quit = new Button("Quit");
         quit.setPreferredSize(startWindowButtonSize);
-        quit.setFont(new Font("Helvetica", Font.PLAIN, START_WINDOW_BUTTON_TEXT_SIZE));
+        quit.setFont(startWindowButtonFont);
         quit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) { System.exit(0); }
@@ -153,7 +159,7 @@ public abstract class GUI {
         Button load = new Button("Load");
         JFileChooser fileChooser = new JFileChooser();
         load.setPreferredSize(mainWindowButtonSize);
-        load.setFont(new Font("Helvetica", Font.PLAIN, MAIN_WINDOW_BUTTON_TEXT_SIZE));
+        load.setFont(mainWindowButtonFont);
         load.setToolTipText("Load a recipe file.");
         load.addActionListener(new ActionListener() {
             @Override
@@ -173,7 +179,7 @@ public abstract class GUI {
 
         Button create = new Button("Create");
         create.setPreferredSize(mainWindowButtonSize);
-        create.setFont(new Font("Helvetica", Font.PLAIN, MAIN_WINDOW_BUTTON_TEXT_SIZE));
+        create.setFont(mainWindowButtonFont);
         create.setToolTipText("Create recipe file by filling in recipe form.");
         create.addActionListener(new ActionListener() {
             @Override
@@ -182,7 +188,7 @@ public abstract class GUI {
 
         Button generate = new Button("Generate");
         generate.setPreferredSize(mainWindowButtonSize);
-        generate.setFont(new Font("Helvetica", Font.PLAIN, MAIN_WINDOW_BUTTON_TEXT_SIZE));
+        generate.setFont(mainWindowButtonFont);
         generate.setToolTipText("Select some options, and generate recipes.");
         generate.addActionListener(new ActionListener() {
             @Override
@@ -191,7 +197,7 @@ public abstract class GUI {
 
         Button quit = new Button("Quit");
         quit.setPreferredSize(mainWindowButtonSize);
-        quit.setFont(new Font("Helvetica", Font.PLAIN, MAIN_WINDOW_BUTTON_TEXT_SIZE));
+        quit.setFont(mainWindowButtonFont);
         quit.setToolTipText("Close program.");
         quit.addActionListener(new ActionListener() {
             @Override
@@ -277,56 +283,117 @@ public abstract class GUI {
         recipeFormWindow.getContentPane().setBackground(bgCol);
 
         JLabel nameLabel = new JLabel("Name:");
-        nameLabel.setFont(new Font("Helvetica", Font.PLAIN, RECIPE_FORM_TEXT_SIZE));
+        nameLabel.setFont(recipeFormWindowLabelFont);
         nameLabel.setForeground(primaryTextCol);
 
         JLabel servesLabel = new JLabel("Serves:");
-        servesLabel.setFont(new Font("Helvetica", Font.PLAIN, RECIPE_FORM_TEXT_SIZE));
+        servesLabel.setFont(recipeFormWindowLabelFont);
         servesLabel.setForeground(primaryTextCol);
 
         JLabel prepLabel = new JLabel("Prep Time:");
-        prepLabel.setFont(new Font("Helvetica", Font.PLAIN, RECIPE_FORM_TEXT_SIZE));
+        prepLabel.setFont(recipeFormWindowLabelFont);
         prepLabel.setForeground(primaryTextCol);
 
         JLabel cookLabel = new JLabel("Cook Time:");
-        cookLabel.setFont(new Font("Helvetica", Font.PLAIN, RECIPE_FORM_TEXT_SIZE));
+        cookLabel.setFont(recipeFormWindowLabelFont);
         cookLabel.setForeground(primaryTextCol);
 
         JLabel ingredientsLabel = new JLabel("Ingredients");
-        ingredientsLabel.setFont(new Font("Helvetica", Font.PLAIN, RECIPE_FORM_TEXT_SIZE));
+        ingredientsLabel.setFont(recipeFormWindowLabelFont);
         ingredientsLabel.setForeground(primaryTextCol);
 
         JLabel methodLabel = new JLabel("Method");
-        methodLabel.setFont(new Font("Helvetica", Font.PLAIN, RECIPE_FORM_TEXT_SIZE));
+        methodLabel.setFont(recipeFormWindowLabelFont);
         methodLabel.setForeground(primaryTextCol);
 
         JTextField nameField = new JTextField();
+        nameField.setFont(recipeFormWindowComponentFont);
+        nameField.setForeground(primaryTextCol);
 
         JTextField prepField = new JTextField();
+        prepField.setFont(recipeFormWindowComponentFont);
+        prepField.setForeground(primaryTextCol);
 
         JTextField cookField = new JTextField();
+        cookField.setFont(recipeFormWindowComponentFont);
+        cookField.setForeground(primaryTextCol);
 
         JTextField ingredientsField = new JTextField();
+        ingredientsField.setFont(recipeFormWindowComponentFont);
+        ingredientsField.setForeground(primaryTextCol);
 
         JTextField methodField = new JTextField();
+        methodField.setFont(recipeFormWindowComponentFont);
+        methodField.setForeground(primaryTextCol);
 
         JSlider servesSlider = new JSlider();
+        servesSlider.setMinimum(1);
+        servesSlider.setMaximum(20);
+        servesSlider.setMinorTickSpacing(1);
+        servesSlider.setFont(recipeFormWindowComponentFont);
+        servesSlider.setForeground(primaryTextCol);
 
         JList<String> ingredientsList = new JList<>();
+        ingredientsList.setFont(recipeFormWindowComponentFont);
+        ArrayList<String> listOfIngredients = new ArrayList<>();
 
         JList<String> methodList = new JList<>();
+        methodList.setFont(recipeFormWindowComponentFont);
 
         JScrollPane ingredientsScroll = new JScrollPane();
+        ingredientsScroll.add(ingredientsList);
+        ingredientsScroll.createVerticalScrollBar();
+        ingredientsScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        //TODO: set preferred size
 
         JScrollPane methodScroll = new JScrollPane();
+        methodScroll.add(methodList);
+        methodScroll.createVerticalScrollBar();
+        methodScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        //TODO: set preferred size
 
         Button ingredientButton = new Button("OK!");
+        //TODO: add fields for amount and measurement type to go before ingredient field
+        ingredientButton.setFont(recipeFormWindowComponentFont);
+        ingredientButton.setPreferredSize(recipeFormButtonSize);
+        ingredientButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!ingredientsField.getText().equals("")) {
+                    //listOfIngredients.add(ingredientsField.getText())
+                }
+            }
+        });
 
         Button methodButton = new Button("OK!");
+        methodButton.setFont(recipeFormWindowComponentFont);
+        methodButton.setPreferredSize(recipeFormButtonSize);
+        methodButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+            }
+        });
 
         Button cancelButton = new Button("Cancel");
+        cancelButton.setFont(recipeFormWindowComponentFont);
+        methodButton.setPreferredSize(recipeFormButtonSize);
+        methodButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+            }
+        });
 
         Button doneButton = new Button("Done");
+        doneButton.setFont(recipeFormWindowComponentFont);
+        doneButton.setPreferredSize(recipeFormButtonSize);
+        doneButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+            }
+        });
 
         //TODO: insert checkboxes and radio buttons for further specifications eg dietary and meat contents
 
