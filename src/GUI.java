@@ -1,3 +1,6 @@
+import jdk.nashorn.internal.scripts.JO;
+import recipeInfo.recipeContents.Measurement;
+
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -302,9 +305,25 @@ public abstract class GUI {
         ingredientsLabel.setFont(recipeFormWindowLabelFont);
         ingredientsLabel.setForeground(primaryTextCol);
 
+        JLabel ingredientLabel = new JLabel("Ingredient");
+        ingredientLabel.setFont(recipeFormWindowLabelFont);
+        ingredientLabel.setForeground(primaryTextCol);
+
+        JLabel ingredientAmountLabel = new JLabel("Amount");
+        ingredientAmountLabel.setFont(recipeFormWindowLabelFont);
+        ingredientAmountLabel.setForeground(primaryTextCol);
+
+        JLabel ingredientMeasurementLabel = new JLabel("Measurement");
+        ingredientMeasurementLabel.setFont(recipeFormWindowLabelFont);
+        ingredientMeasurementLabel.setForeground(primaryTextCol);
+
         JLabel methodLabel = new JLabel("Method");
         methodLabel.setFont(recipeFormWindowLabelFont);
         methodLabel.setForeground(primaryTextCol);
+
+        JLabel methodStepLabel = new JLabel("Step: ");
+        methodStepLabel.setFont(recipeFormWindowLabelFont);
+        methodStepLabel.setForeground(primaryTextCol);
 
         JTextField nameField = new JTextField();
         nameField.setFont(recipeFormWindowComponentFont);
@@ -322,9 +341,14 @@ public abstract class GUI {
         ingredientsField.setFont(recipeFormWindowComponentFont);
         ingredientsField.setForeground(primaryTextCol);
 
+        JTextField ingredientsAmountField = new JTextField();
+        ingredientsAmountField.setFont(recipeFormWindowComponentFont);
+        ingredientsAmountField.setForeground(primaryTextCol);
+
         JTextField methodField = new JTextField();
         methodField.setFont(recipeFormWindowComponentFont);
         methodField.setForeground(primaryTextCol);
+        methodField.setToolTipText("Write the method step, without the step number.");
 
         JSlider servesSlider = new JSlider();
         servesSlider.setMinimum(1);
@@ -333,12 +357,16 @@ public abstract class GUI {
         servesSlider.setFont(recipeFormWindowComponentFont);
         servesSlider.setForeground(primaryTextCol);
 
+        JComboBox<String> ingredientsMeasurementComboBox = new JComboBox<>();
+        //TODO: create a collection of approved measurement types, perhaps an enum, and add them to the combo box
+
         JList<String> ingredientsList = new JList<>();
         ingredientsList.setFont(recipeFormWindowComponentFont);
         ArrayList<String> listOfIngredients = new ArrayList<>();
 
         JList<String> methodList = new JList<>();
         methodList.setFont(recipeFormWindowComponentFont);
+        ArrayList<String> listOfMethodSteps = new ArrayList<>();
 
         JScrollPane ingredientsScroll = new JScrollPane();
         ingredientsScroll.add(ingredientsList);
@@ -371,7 +399,19 @@ public abstract class GUI {
         methodButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                if (!methodField.getText().equals("")) {
+                    if (!Character.isDigit(methodField.getText().charAt(0))) {
+                        listOfMethodSteps.add(methodField.getText());
+                        methodField.setText("");
+                        methodList.setListData((String[]) listOfMethodSteps.toArray());
+                    }
+                    else {
+                        //TODO: make a dialog that says you can't begin your method with a number
+                    }
+                }
+                else {
+                    //TODO: make dialog saying to add content
+                }
             }
         });
 
@@ -381,6 +421,12 @@ public abstract class GUI {
         methodButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                JOptionPane option = new JOptionPane();
+                option.setOptionType(JOptionPane.OK_CANCEL_OPTION);
+                option.setMessage("Are you sure you want to cancel? \n You will lose all progress.");
+                JDialog dialog = new JDialog();
+                dialog.setContentPane(option);
+                //TODO: figure out the dialog stuff here, close window on OK, close dialog on cancel
 
             }
         });
@@ -391,7 +437,7 @@ public abstract class GUI {
         doneButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                //TODO: add a check to make sure all required fields are filled out, parse file if meets requirements
             }
         });
 
