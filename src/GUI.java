@@ -1,13 +1,12 @@
-import jdk.nashorn.internal.scripts.JO;
-import recipeInfo.recipeContents.Measurement;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.ArrayList;
 
@@ -344,6 +343,11 @@ public abstract class GUI {
         JTextField ingredientsAmountField = new JTextField();
         ingredientsAmountField.setFont(recipeFormWindowComponentFont);
         ingredientsAmountField.setForeground(primaryTextCol);
+        ingredientsAmountField.addKeyListener(new KeyAdapter() { //limit textField to numbers only
+            public void keyPressed(KeyEvent ke) {
+                ingredientsAmountField.setEditable(ke.getKeyChar() >= '0' && ke.getKeyChar() <= '9');
+            }
+        });
 
         JTextField methodField = new JTextField();
         methodField.setFont(recipeFormWindowComponentFont);
@@ -424,9 +428,17 @@ public abstract class GUI {
                 JOptionPane option = new JOptionPane();
                 option.setOptionType(JOptionPane.OK_CANCEL_OPTION);
                 option.setMessage("Are you sure you want to cancel? \n You will lose all progress.");
-                JDialog dialog = new JDialog();
-                dialog.setContentPane(option);
-                //TODO: figure out the dialog stuff here, close window on OK, close dialog on cancel
+                JDialog dialog = option.createDialog("Are you sure?");
+                dialog.pack();
+                dialog.setVisible(true);
+                int choice = (Integer) option.getValue();
+                if (choice == JOptionPane.OK_OPTION) {
+                    recipeFormWindow.setVisible(false);
+                }
+                else if (choice == JOptionPane.CANCEL_OPTION) {
+                    dialog.setVisible(false);
+                }
+                //TODO: check to make sure above dialog works once GUI is constructed
 
             }
         });
@@ -447,8 +459,104 @@ public abstract class GUI {
         recipeFormWindow.setLayout(new GridBagLayout());
         GridBagConstraints constraints = new GridBagConstraints();
 
+        //TODO: layout needs major padding updates
+
+        //add name label
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        recipeFormWindow.add(nameLabel, constraints);
+        //add name field
+        constraints.gridx = 1;
+        constraints.gridwidth = 2;
+        recipeFormWindow.add(nameField, constraints);
+        //add serves label
+        constraints.gridx = 0;
+        constraints.gridy = 1;
+        constraints.gridwidth = 1;
+        recipeFormWindow.add(servesLabel, constraints);
+        //add serves slider
+        constraints.gridx = 1;
+        constraints.gridwidth = 4;
+        recipeFormWindow.add(servesSlider, constraints);
+        //add prep label
+        constraints.gridx = 0;
+        constraints.gridy = 2;
+        constraints.gridwidth = 1;
+        recipeFormWindow.add(prepLabel, constraints);
+        //add prep field
+        constraints.gridx = 1;
+        recipeFormWindow.add(prepField, constraints);
+        //add cook label
+        constraints.gridx = 2;
+        recipeFormWindow.add(cookLabel, constraints);
+        //add cook field
+        constraints.gridx = 3;
+        recipeFormWindow.add(cookField, constraints);
+        //add ingredients label
+        constraints.gridx = 0;
+        constraints.gridy = 3;
+        constraints.gridwidth = 2;
+        recipeFormWindow.add(ingredientsLabel, constraints);
+        //add amount field
+        constraints.gridy = 4;
+        constraints.gridwidth = 1;
+        recipeFormWindow.add(ingredientsAmountField, constraints);
+        //add measurement comboBox
+        constraints.gridx = 1;
+        recipeFormWindow.add(ingredientsMeasurementComboBox, constraints);
+        //add ingredient field
+        constraints.gridx = 2;
+        constraints.gridwidth = 2;
+        recipeFormWindow.add(ingredientsField, constraints);
+        //add ingredient button
+        constraints.gridx = 4;
+        constraints.gridwidth = 1;
+        recipeFormWindow.add(ingredientButton, constraints);
+        //add amount label
+        constraints.gridx = 0;
+        constraints.gridy = 5;
+        recipeFormWindow.add(ingredientAmountLabel, constraints);
+        //add measurement label
+        constraints.gridx = 1;
+        recipeFormWindow.add(ingredientMeasurementLabel, constraints);
+        //add ingredient label
+        constraints.gridx = 2;
+        constraints.gridwidth = 2;
+        recipeFormWindow.add(ingredientLabel, constraints);
+        //add ingredient list
+        //TODO: this will need to be split into more rows when checkboxes get added
+        constraints.gridx = 0;
+        constraints.gridy = 6;
+        recipeFormWindow.add(ingredientsScroll, constraints);
+        //add method label
+        constraints.gridy = 7;
+        recipeFormWindow.add(methodLabel, constraints);
+        //add step label
+        constraints.gridy = 8;
+        recipeFormWindow.add(methodStepLabel, constraints);
+        //add method field
+        constraints.gridx = 1;
+        constraints.gridwidth = 3;
+        recipeFormWindow.add(methodField, constraints);
+        //add method button
+        constraints.gridx = 4;
+        constraints.gridwidth = 1;
+        recipeFormWindow.add(methodButton, constraints);
+        //add method list
+        constraints.gridx = 0;
+        constraints.gridy = 9;
+        recipeFormWindow.add(methodScroll, constraints);
+        //TODO: there will need to be more rows added here when meal types are added
+        //add cancel button
+        constraints.gridx = 3;
+        constraints.gridy = 10;
+        recipeFormWindow.add(cancelButton, constraints);
+        //add done button
+        constraints.gridx = 4;
+        recipeFormWindow.add(doneButton, constraints);
+
+
         recipeFormWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); //ideally will have a cancel button that we prefer user to use
-        //TODO: make panel for form
         recipeFormWindow.pack();
         recipeFormWindow.setVisible(true);
     }
