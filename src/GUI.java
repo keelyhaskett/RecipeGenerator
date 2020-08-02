@@ -285,64 +285,54 @@ public abstract class GUI {
         recipeFormWindow.getContentPane().setBackground(bgCol);
 
         JLabel nameLabel = new JLabel("Name:");
-        nameLabel.setFont(recipeFormWindowLabelFont);
-        nameLabel.setForeground(primaryTextCol);
+        setFormLabelDetails(nameLabel);
 
         JLabel servesLabel = new JLabel("Serves:");
-        servesLabel.setFont(recipeFormWindowLabelFont);
-        servesLabel.setForeground(primaryTextCol);
+        setFormLabelDetails(servesLabel);
 
         JLabel prepLabel = new JLabel("Prep Time:");
-        prepLabel.setFont(recipeFormWindowLabelFont);
-        prepLabel.setForeground(primaryTextCol);
+        setFormLabelDetails(prepLabel);
 
         JLabel cookLabel = new JLabel("Cook Time:");
-        cookLabel.setFont(recipeFormWindowLabelFont);
-        cookLabel.setForeground(primaryTextCol);
+        setFormLabelDetails(cookLabel);
 
         JLabel ingredientsLabel = new JLabel("Ingredients");
-        ingredientsLabel.setFont(recipeFormWindowLabelFont);
-        ingredientsLabel.setForeground(primaryTextCol);
+        setFormLabelDetails(ingredientsLabel);
 
         JLabel ingredientLabel = new JLabel("Ingredient");
-        ingredientLabel.setFont(recipeFormWindowLabelFont);
-        ingredientLabel.setForeground(primaryTextCol);
+        setFormLabelDetails(ingredientLabel);
 
         JLabel ingredientAmountLabel = new JLabel("Amount");
-        ingredientAmountLabel.setFont(recipeFormWindowLabelFont);
-        ingredientAmountLabel.setForeground(primaryTextCol);
+        setFormLabelDetails(ingredientAmountLabel);
 
         JLabel ingredientMeasurementLabel = new JLabel("Measurement");
-        ingredientMeasurementLabel.setFont(recipeFormWindowLabelFont);
-        ingredientMeasurementLabel.setForeground(primaryTextCol);
+        setFormLabelDetails(ingredientMeasurementLabel);
 
         JLabel methodLabel = new JLabel("Method");
-        methodLabel.setFont(recipeFormWindowLabelFont);
-        methodLabel.setForeground(primaryTextCol);
+        setFormLabelDetails(methodLabel);
 
         JLabel methodStepLabel = new JLabel("Step: ");
-        methodStepLabel.setFont(recipeFormWindowLabelFont);
-        methodStepLabel.setForeground(primaryTextCol);
+        setFormLabelDetails(methodStepLabel);
 
         JTextField nameField = new JTextField();
-        nameField.setFont(recipeFormWindowComponentFont);
-        nameField.setForeground(primaryTextCol);
+        setFormComponentDetails(nameField);
+        nameField.setColumns(20);
 
         JTextField prepField = new JTextField();
-        prepField.setFont(recipeFormWindowComponentFont);
-        prepField.setForeground(primaryTextCol);
+        setFormComponentDetails(prepField);
+        prepField.setColumns(10);
 
         JTextField cookField = new JTextField();
-        cookField.setFont(recipeFormWindowComponentFont);
-        cookField.setForeground(primaryTextCol);
+        setFormComponentDetails(cookField);
+        cookField.setColumns(10);
 
         JTextField ingredientsField = new JTextField();
-        ingredientsField.setFont(recipeFormWindowComponentFont);
-        ingredientsField.setForeground(primaryTextCol);
+        setFormComponentDetails(ingredientsField);
+        ingredientsField.setColumns(17);
 
         JTextField ingredientsAmountField = new JTextField();
-        ingredientsAmountField.setFont(recipeFormWindowComponentFont);
-        ingredientsAmountField.setForeground(primaryTextCol);
+        setFormComponentDetails(ingredientsAmountField);
+        ingredientsAmountField.setColumns(6);
         ingredientsAmountField.addKeyListener(new KeyAdapter() { //limit textField to numbers only
             public void keyPressed(KeyEvent ke) {
                 ingredientsAmountField.setEditable(ke.getKeyChar() >= '0' && ke.getKeyChar() <= '9');
@@ -350,43 +340,46 @@ public abstract class GUI {
         });
 
         JTextField methodField = new JTextField();
-        methodField.setFont(recipeFormWindowComponentFont);
-        methodField.setForeground(primaryTextCol);
+        setFormComponentDetails(methodField);
+        methodField.setColumns(25);
+
         methodField.setToolTipText("Write the method step, without the step number.");
 
         JSlider servesSlider = new JSlider();
         servesSlider.setMinimum(1);
         servesSlider.setMaximum(20);
         servesSlider.setMinorTickSpacing(1);
-        servesSlider.setFont(recipeFormWindowComponentFont);
-        servesSlider.setForeground(primaryTextCol);
+        setFormComponentDetails(servesSlider);
 
         JComboBox<String> ingredientsMeasurementComboBox = new JComboBox<>();
         //TODO: create a collection of approved measurement types, perhaps an enum, and add them to the combo box
 
         JList<String> ingredientsList = new JList<>();
-        ingredientsList.setFont(recipeFormWindowComponentFont);
+        setFormComponentDetails(ingredientsList);
+        ingredientsList.setPreferredSize(new Dimension(300, 100));
         ArrayList<String> listOfIngredients = new ArrayList<>();
 
         JList<String> methodList = new JList<>();
-        methodList.setFont(recipeFormWindowComponentFont);
+        setFormComponentDetails(methodList);
         ArrayList<String> listOfMethodSteps = new ArrayList<>();
 
         JScrollPane ingredientsScroll = new JScrollPane();
         ingredientsScroll.add(ingredientsList);
         ingredientsScroll.createVerticalScrollBar();
         ingredientsScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        ingredientsScroll.setPreferredSize(new Dimension(500, 100));
         //TODO: set preferred size
 
         JScrollPane methodScroll = new JScrollPane();
         methodScroll.add(methodList);
         methodScroll.createVerticalScrollBar();
         methodScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        methodScroll.setPreferredSize(new Dimension(500, 100));
         //TODO: set preferred size
 
         Button ingredientButton = new Button("OK!");
         //TODO: add fields for amount and measurement type to go before ingredient field
-        ingredientButton.setFont(recipeFormWindowComponentFont);
+        setFormComponentDetails(ingredientButton);
         ingredientButton.setPreferredSize(recipeFormButtonSize);
         ingredientButton.addActionListener(new ActionListener() {
             @Override
@@ -398,7 +391,7 @@ public abstract class GUI {
         });
 
         Button methodButton = new Button("OK!");
-        methodButton.setFont(recipeFormWindowComponentFont);
+        setFormComponentDetails(methodButton);
         methodButton.setPreferredSize(recipeFormButtonSize);
         methodButton.addActionListener(new ActionListener() {
             @Override
@@ -420,7 +413,7 @@ public abstract class GUI {
         });
 
         Button cancelButton = new Button("Cancel");
-        cancelButton.setFont(recipeFormWindowComponentFont);
+        setFormComponentDetails(cancelButton);
         methodButton.setPreferredSize(recipeFormButtonSize);
         methodButton.addActionListener(new ActionListener() {
             @Override
@@ -444,7 +437,7 @@ public abstract class GUI {
         });
 
         Button doneButton = new Button("Done");
-        doneButton.setFont(recipeFormWindowComponentFont);
+        setFormComponentDetails(doneButton);
         doneButton.setPreferredSize(recipeFormButtonSize);
         doneButton.addActionListener(new ActionListener() {
             @Override
@@ -464,6 +457,7 @@ public abstract class GUI {
         //add name label
         constraints.gridx = 0;
         constraints.gridy = 0;
+        constraints.ipady = 20;
         recipeFormWindow.add(nameLabel, constraints);
         //add name field
         constraints.gridx = 1;
@@ -559,6 +553,16 @@ public abstract class GUI {
         recipeFormWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); //ideally will have a cancel button that we prefer user to use
         recipeFormWindow.pack();
         recipeFormWindow.setVisible(true);
+    }
+
+    private void setFormComponentDetails(JComponent component) {
+        component.setFont(recipeFormWindowComponentFont);
+        component.setForeground(primaryTextCol);
+    }
+
+    private void setFormLabelDetails(JLabel label) {
+        label.setFont(recipeFormWindowLabelFont);
+        label.setForeground(primaryTextCol);
     }
 
     /**
