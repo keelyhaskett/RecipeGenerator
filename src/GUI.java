@@ -414,8 +414,8 @@ public abstract class GUI {
 
         Button cancelButton = new Button("Cancel");
         setFormComponentDetails(cancelButton);
-        methodButton.setPreferredSize(recipeFormButtonSize);
-        methodButton.addActionListener(new ActionListener() {
+        cancelButton.setMaximumSize(recipeFormButtonSize);
+        cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JOptionPane option = new JOptionPane();
@@ -436,9 +436,9 @@ public abstract class GUI {
             }
         });
 
-        Button doneButton = new Button("Done");
+        Button doneButton = new Button(" Done ");
         setFormComponentDetails(doneButton);
-        doneButton.setPreferredSize(recipeFormButtonSize);
+        doneButton.setMaximumSize(recipeFormButtonSize);
         doneButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -458,6 +458,7 @@ public abstract class GUI {
         constraints.gridx = 0;
         constraints.gridy = 0;
         constraints.ipady = 20;
+        constraints.insets = new Insets(5,10,5,10);
         recipeFormWindow.add(nameLabel, constraints);
         //add name field
         constraints.gridx = 1;
@@ -521,12 +522,16 @@ public abstract class GUI {
         //TODO: this will need to be split into more rows when checkboxes get added
         constraints.gridx = 0;
         constraints.gridy = 6;
+        constraints.fill = GridBagConstraints.BOTH;
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
         recipeFormWindow.add(ingredientsScroll, constraints);
         //add method label
         constraints.gridy = 7;
+        constraints.fill = GridBagConstraints.NONE;
         recipeFormWindow.add(methodLabel, constraints);
         //add step label
         constraints.gridy = 8;
+        constraints.gridwidth = 1;
         recipeFormWindow.add(methodStepLabel, constraints);
         //add method field
         constraints.gridx = 1;
@@ -539,14 +544,18 @@ public abstract class GUI {
         //add method list
         constraints.gridx = 0;
         constraints.gridy = 9;
+        constraints.fill = GridBagConstraints.BOTH;
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
         recipeFormWindow.add(methodScroll, constraints);
         //TODO: there will need to be more rows added here when meal types are added
         //add cancel button
         constraints.gridx = 3;
         constraints.gridy = 10;
+        constraints.gridwidth = 1;
         recipeFormWindow.add(cancelButton, constraints);
         //add done button
         constraints.gridx = 4;
+        constraints.gridwidth = 1;
         recipeFormWindow.add(doneButton, constraints);
 
 
