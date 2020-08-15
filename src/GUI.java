@@ -233,7 +233,7 @@ public abstract class GUI {
         recipePanel.setLayout(new BorderLayout());
 
         JList<String> recipes = new JList<>();
-        recipes.setListData(getRecipes().namesToArray()); //add all of the name of recipes in recipebook to the list
+        recipes.setListData(getRecipes().namesToArray()); //add all of the name of recipes in recipeBook to the list
         recipes.setLayoutOrientation(JList.VERTICAL);
         recipes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); //TODO: change this to multiple selection when understanding
         recipes.setFont(new Font("Helvetica", Font.PLAIN, RECIPE_LIST_TEXT_SIZE));
@@ -354,28 +354,25 @@ public abstract class GUI {
         JComboBox<String> ingredientsMeasurementComboBox = new JComboBox<>();
         //TODO: create a collection of approved measurement types, perhaps an enum, and add them to the combo box
 
-        JList<String> ingredientsList = new JList<>();
+        DefaultListModel<String> ingredientsModel = new DefaultListModel<>();
+        JList<? extends String>  ingredientsList = new JList<>(ingredientsModel);
         setFormComponentDetails(ingredientsList);
         ingredientsList.setPreferredSize(new Dimension(300, 100));
-        ArrayList<String> listOfIngredients = new ArrayList<>();
 
-        JList<String> methodList = new JList<>();
+        DefaultListModel<String> methodStepsModel = new DefaultListModel<>();
+        JList<? extends String> methodList = new JList<>(methodStepsModel);
         setFormComponentDetails(methodList);
-        ArrayList<String> listOfMethodSteps = new ArrayList<>();
+        methodList.setVisible(true);
 
-        JScrollPane ingredientsScroll = new JScrollPane();
-        ingredientsScroll.add(ingredientsList);
+        JScrollPane ingredientsScroll = new JScrollPane(ingredientsList);
         ingredientsScroll.createVerticalScrollBar();
         ingredientsScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         ingredientsScroll.setPreferredSize(new Dimension(500, 100));
-        //TODO: set preferred size
 
-        JScrollPane methodScroll = new JScrollPane();
-        methodScroll.add(methodList);
+        JScrollPane methodScroll = new JScrollPane(methodList);
         methodScroll.createVerticalScrollBar();
         methodScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         methodScroll.setPreferredSize(new Dimension(500, 100));
-        //TODO: set preferred size
 
         Button ingredientButton = new Button("OK!");
         //TODO: add fields for amount and measurement type to go before ingredient field
@@ -398,16 +395,33 @@ public abstract class GUI {
             public void actionPerformed(ActionEvent e) {
                 if (!methodField.getText().equals("")) {
                     if (!Character.isDigit(methodField.getText().charAt(0))) {
-                        listOfMethodSteps.add(methodField.getText());
+                        methodStepsModel.addElement(methodField.getText());
                         methodField.setText("");
-                        methodList.setListData((String[]) listOfMethodSteps.toArray());
                     }
                     else {
-                        //TODO: make a dialog that says you can't begin your method with a number
+                        JOptionPane option = new JOptionPane();
+                        option.setOptionType(JOptionPane.DEFAULT_OPTION);
+                        option.setMessage("The first character of your method step cannot be numeric!");
+                        JDialog dialog = option.createDialog("Incorrect Format");
+                        dialog.pack();
+                        dialog.setVisible(true);
+                        int choice = (Integer) option.getValue();
+                        if (choice == JOptionPane.OK_OPTION) {
+                            dialog.setVisible(false);
+                        }
                     }
                 }
                 else {
-                    //TODO: make dialog saying to add content
+                    JOptionPane option = new JOptionPane();
+                    option.setOptionType(JOptionPane.DEFAULT_OPTION);
+                    option.setMessage("You must have content to add.");
+                    JDialog dialog = option.createDialog("Incorrect Format");
+                    dialog.pack();
+                    dialog.setVisible(true);
+                    int choice = (Integer) option.getValue();
+                    if (choice == JOptionPane.OK_OPTION) {
+                        dialog.setVisible(false);
+                    }
                 }
             }
         });
@@ -431,7 +445,6 @@ public abstract class GUI {
                 else if (choice == JOptionPane.CANCEL_OPTION) {
                     dialog.setVisible(false);
                 }
-                //TODO: check to make sure above dialog works once GUI is constructed
 
             }
         });
@@ -442,7 +455,22 @@ public abstract class GUI {
         doneButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //TODO: add a check to make sure all required fields are filled out, parse file if meets requirements
+                if (!(cookField.getText().equals("") || nameField.getText().equals("") || prepField.getText().equals("")
+                || ingredientsList.getModel().getSize() == 0 || methodList.getModel().getSize() == 0)) {
+                    //TODO process parser
+                }
+                else {
+                    JOptionPane option = new JOptionPane();
+                    option.setOptionType(JOptionPane.DEFAULT_OPTION);
+                    option.setMessage("A necessary field seems to be empty.");
+                    JDialog dialog = option.createDialog("Missing Information!");
+                    dialog.pack();
+                    dialog.setVisible(true);
+                    int choice = (Integer) option.getValue();
+                    if (choice == JOptionPane.OK_OPTION) {
+                        dialog.setVisible(false);
+                    }
+                }
             }
         });
 
