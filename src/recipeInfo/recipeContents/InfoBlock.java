@@ -27,9 +27,8 @@ public class InfoBlock {
 	}
 
 	public String toFileFormat() {
-		return serves + "," +
-				((int) prepTime.toMinutes()) / 60 + ":" + prepTime.toMinutes() % 60 + "," +
-				((int) cookTime.toMinutes()) / 60 + ":" + cookTime.toMinutes() % 60 +
-				"\n";
+		return serves + " , " +
+				((int) prepTime.toMinutes()) / 60 + " : " + prepTime.toMinutes() % 60 + " , " +
+				((int) cookTime.toMinutes()) / 60 + " : " + cookTime.toMinutes() % 60;
 	}
 }

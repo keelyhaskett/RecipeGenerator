@@ -8,12 +8,11 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.sql.Time;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -172,18 +171,22 @@ public abstract class GUI {
         load.setPreferredSize(mainWindowButtonSize);
         load.setFont(mainWindowButtonFont);
         load.setToolTipText("Load a recipe file.");
-        load.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                fileChooser.setCurrentDirectory(new File("."));
-                fileChooser.setDialogTitle("Select recipe file.");
-                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        load.addActionListener(e -> {
+            fileChooser.setCurrentDirectory(new File("."));
+            fileChooser.setDialogTitle("Select recipe file.");
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
-                if (fileChooser.showOpenDialog(mainWindow) == JFileChooser.APPROVE_OPTION) { //if the user chose an
-                                                                                            //acceptable file
-                    File file = fileChooser.getSelectedFile();
-                    //TODO: parse file here and return some sort of runtime exception if it doesn't parse properly
-
+            if (fileChooser.showOpenDialog(mainWindow) == JFileChooser.APPROVE_OPTION) { //if the user chose an
+                                                                                        //acceptable file
+                File file = fileChooser.getSelectedFile();
+                try {
+                    saveRecipe(new RecipeParser().parseRecipeFromFile(file));
+                    refreshRecipeList();
+                } catch (FileNotFoundException fileNotFoundException) {
+                    //TODO: add dialog to say communicate error
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                    //TODO: put dialog
                 }
             }
         });
@@ -614,8 +617,8 @@ public abstract class GUI {
             if (((int)prepTimeHourInput.getValue() > 0 || (int)prepTimeMinuteInput.getValue() > 0) && ((int)cookTimeHourInput.getValue() > 0 || (int)cookTimeMinuteInput.getValue() > 0)
                 && ingredientsCollection[0] != null && stepsCollection[0] != null && !nameInput.getText().equals(""))  {
 
-                Recipe r = new Recipe(new ArrayList<>(Arrays.asList(ingredientsCollection)),
-                        new Method(Arrays.asList(stepsCollection)),
+                Recipe r = new Recipe(new ArrayList<>(Arrays.stream(ingredientsCollection).filter(Objects::nonNull).collect(Collectors.toList())),
+                        new Method(new ArrayList<>(Arrays.stream(stepsCollection).filter(Objects::nonNull).collect(Collectors.toList()))),
                         nameInput.getText(),
                         new InfoBlock(Duration.ofHours((int)prepTimeHourInput.getValue()).plus(Duration.ofMinutes((int)prepTimeMinuteInput.getValue())),
                         Duration.ofHours((int)cookTimeHourInput.getValue()).plus(Duration.ofMinutes((int)cookTimeMinuteInput.getValue())),
@@ -623,13 +626,33 @@ public abstract class GUI {
                 saveRecipe(r);
                 JOptionPane option = new JOptionPane();
                 option.setOptionType(JOptionPane.DEFAULT_OPTION);
-                option.setMessage("Recipe has successfully been created!");
+                option.setMessage("Recipe has successfully been created! \nPlease proceed to save to file.");
                 JDialog dialog = option.createDialog("Success");
                 dialog.pack();
                 dialog.setVisible(true);
                 int choice = (Integer) option.getValue();
                 if (choice == JOptionPane.OK_OPTION) {
-                    recipes.setListData(getRecipes().namesToArray());
+                    JFileChooser fileChooser = new JFileChooser();
+                        fileChooser.setCurrentDirectory(new File("."));
+                        fileChooser.setDialogTitle("Select file to save in");
+
+                        if (fileChooser.showSaveDialog(generationWindow) == JFileChooser.APPROVE_OPTION) { //if the user chose an
+                            //acceptable file
+                            File file = fileChooser.getSelectedFile();
+                            if (!file.toString().toLowerCase().endsWith(".txt")) {
+                                file = new File(file.getPath() + ".txt");
+                            }
+                            try {
+                                new RecipeParser().parseRecipeToFile(r, file);
+                            } catch (FileNotFoundException fileNotFoundException) {
+                                System.out.println("first error");
+                                //TODO: add dialog to say communicate error
+                            } catch (Throwable t) {
+                                t.printStackTrace();
+                                //TODO: put dialog
+                            }
+                        }
+                    refreshRecipeList();
                     dialog.setVisible(false);
                     recipeFormWindow.setVisible(false);
                 }
@@ -660,6 +683,8 @@ public abstract class GUI {
         label.setForeground(primaryTextCol);
         return label;
     }
+
+    private void refreshRecipeList() { recipes.setListData(getRecipes().namesToArray());}
 
     protected abstract void saveRecipe(Recipe r);
 

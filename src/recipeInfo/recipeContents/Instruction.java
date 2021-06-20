@@ -29,6 +29,6 @@ public class Instruction {
     }
 
     public String toFileFormat() {
-        return "# " + stepNumber + " " + step + " # ";
+        return "# " + stepNumber + " " + step + " #  ";
     }
 }

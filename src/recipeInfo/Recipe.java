@@ -28,7 +28,7 @@ public class Recipe {
 
     public String toFileFormat() {
         StringBuilder b =  new StringBuilder();
-        b.append("( ").append(name).append(" ) \n");
+        b.append("( ").append(name).append(" ) ");
         b.append(info.toFileFormat());
         b.append("<start> ");
         for (Ingredient i : ingredients) {

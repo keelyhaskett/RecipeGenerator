@@ -25,11 +25,11 @@ public class Method {
 
     public String toFileFormat() {
         StringBuilder b = new StringBuilder();
-        b.append("<start>");
+        b.append("<start> ");
         for (Instruction i : steps) {
             b.append(i.toFileFormat());
         }
         b.append("<stop>");
-        return null;
+        return b.toString();
     }
 }
