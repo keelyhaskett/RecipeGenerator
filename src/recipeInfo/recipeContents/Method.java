@@ -1,12 +1,13 @@
 package recipeInfo.recipeContents;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Method {
     private ArrayList<Instruction> steps;
 
-    public Method() {
-        steps = new ArrayList<>();
+    public Method(List<Instruction> i) {
+        steps = new ArrayList<>(i);
     }
 
     public void addStep(Instruction i) { steps.add(i); }

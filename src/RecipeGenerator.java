@@ -1,4 +1,4 @@
-
+import recipeInfo.Recipe;
 
 public class RecipeGenerator extends GUI {
     private RecipeBook recipes =  new RecipeBook();
@@ -15,5 +15,10 @@ public class RecipeGenerator extends GUI {
     @Override
     protected RecipeBook getRecipes() {
         return recipes;
+    }
+
+    @Override
+    protected void saveRecipe(Recipe r) {
+        recipes.addRecipe(r);
     }
 }

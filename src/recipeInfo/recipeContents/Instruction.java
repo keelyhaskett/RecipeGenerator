@@ -2,24 +2,28 @@ package recipeInfo.recipeContents;
 
 public class Instruction {
     String step;
+    int stepNumber;
 
-    public Instruction(String i) {
-        this.step = i;
+    public Instruction(String step, int num) {
+        this.step = step;
+        this.stepNumber = num;
     }
 
     @Override
     public String toString() {
+        String tempStep = stepNumber + ". " + step;
         StringBuilder b = new StringBuilder();
         boolean needsNewLine = false;
-        for (int i = 0; i < step.length(); i++) {
+
+        for (int i = 0; i < tempStep.length(); i++) {
             if (i%30 == 0 && i != 0) {
                 needsNewLine = true;
             }
-            if (step.charAt(i) == (' ') && needsNewLine) {
+            if (tempStep.charAt(i) == (' ') && needsNewLine) {
                 b.append('\n');
                 needsNewLine = false;
             }
-            b.append(step.charAt(i));
+            b.append(tempStep.charAt(i));
         }
         return b.toString();
     }

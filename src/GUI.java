@@ -1,14 +1,22 @@
 
+import recipeInfo.Recipe;
+import recipeInfo.recipeContents.Ingredient;
+import recipeInfo.recipeContents.Instruction;
+import recipeInfo.recipeContents.Measurement;
+import recipeInfo.recipeContents.Method;
+
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.io.File;
+import java.sql.Time;
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  *
@@ -25,7 +33,7 @@ public abstract class GUI {
     private static final int MAIN_WINDOW_BUTTON_TEXT_SIZE = 20;
     private static final int RECIPE_LIST_TEXT_SIZE = 15;
     private static final int RECIPE_FORM_TEXT_SIZE = 20;
-    private static final int RECIPE_FORM_COMPONENT_TEXT_SIZE = 15;
+    private static final int RECIPE_FORM_COMPONENT_TEXT_SIZE = 20;
 
     private final Dimension startWindowButtonSize = new Dimension(100, 60);
     private final Dimension startWindowMinimumSize = new Dimension(800, 500);
@@ -39,7 +47,7 @@ public abstract class GUI {
     private final Font startWindowButtonFont = new Font("Helvetica", Font.PLAIN, START_WINDOW_BUTTON_TEXT_SIZE);
     private final Font mainWindowButtonFont = new Font("Helvetica", Font.PLAIN, MAIN_WINDOW_BUTTON_TEXT_SIZE);
     private final Font recipeFormWindowLabelFont = new Font("Helvetica", Font.PLAIN, RECIPE_FORM_TEXT_SIZE);
-    private final Font recipeFormWindowComponentFont = new Font("Helvetica", Font.ITALIC, RECIPE_FORM_COMPONENT_TEXT_SIZE);
+    private final Font recipeFormWindowComponentFont = new Font("Helvetica", Font.PLAIN, RECIPE_FORM_COMPONENT_TEXT_SIZE);
 
     private final Color bgCol = new Color(170, 210, 240);
     private final Color primaryTextCol = new Color(68, 55, 66);
@@ -52,6 +60,10 @@ public abstract class GUI {
     private JFrame mainWindow;
     private JFrame generationWindow;
     private JFrame recipeFormWindow;
+
+    volatile Instruction[] stepsCollection;
+    volatile Ingredient[] ingredientsCollection;
+    JList<String> recipes;
 
 
 
@@ -232,7 +244,7 @@ public abstract class GUI {
         JPanel recipePanel = new JPanel();
         recipePanel.setLayout(new BorderLayout());
 
-        JList<String> recipes = new JList<>();
+        recipes = new JList<>();
         recipes.setListData(getRecipes().namesToArray()); //add all of the name of recipes in recipeBook to the list
         recipes.setLayoutOrientation(JList.VERTICAL);
         recipes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); //TODO: change this to multiple selection when understanding
@@ -281,140 +293,275 @@ public abstract class GUI {
      *
      */
     private void buildRecipeFormWindow() {
-        recipeFormWindow = new JFrame("Enter your recipe");
-        recipeFormWindow.getContentPane().setBackground(bgCol);
+        JPanel name = new JPanel();
+        name.setLayout(new BoxLayout(name, BoxLayout.X_AXIS));
+        JTextField nameInput = new JTextField("");
+        nameInput.setToolTipText("Enter the title of the recipe");
+        setFormComponentDetails(nameInput);
+        nameInput.setColumns(15);
+        nameInput.setMaximumSize(new Dimension(60,30));
+        name.add(Box.createHorizontalGlue());
+        name.add(setFormLabelDetails(new JLabel("Recipe Title")));
+        name.add(Box.createRigidArea(new Dimension(15, 0)));
+        name.add(nameInput);
+        name.add(Box.createHorizontalGlue());
 
-        JLabel nameLabel = new JLabel("Name:");
-        setFormLabelDetails(nameLabel);
+        JPanel recipeStats = new JPanel();
+        JSlider servesInput = new JSlider(1, 10, 4);
+        setFormComponentDetails(servesInput);
+        servesInput.setToolTipText("Slide to indicate how many servings the recipe makes");
+        servesInput.setMinorTickSpacing(1);
+        servesInput.setMajorTickSpacing(2);
+        servesInput.setPaintLabels(true);
+        servesInput.setPaintTicks(true);
+        servesInput.setSnapToTicks(true);
 
-        JLabel servesLabel = new JLabel("Serves:");
-        setFormLabelDetails(servesLabel);
+        JSpinner prepTimeHourInput = new JSpinner();
+        prepTimeHourInput.setToolTipText("Showing the hours, indicate how long the recipe takes to prep");
+        prepTimeHourInput.setModel(new SpinnerNumberModel(0, 0, 100, 1));
+        setFormComponentDetails(prepTimeHourInput);
+        JSpinner prepTimeMinuteInput = new JSpinner();
+        prepTimeMinuteInput.setToolTipText("Showing the minutes, indicate how long the recipe takes to prep");
+        prepTimeMinuteInput.setModel(new SpinnerNumberModel(0, 0, 59, 1));
+        setFormComponentDetails(prepTimeMinuteInput);
 
-        JLabel prepLabel = new JLabel("Prep Time:");
-        setFormLabelDetails(prepLabel);
 
-        JLabel cookLabel = new JLabel("Cook Time:");
-        setFormLabelDetails(cookLabel);
+        JSpinner cookTimeHourInput = new JSpinner();
+        cookTimeHourInput.setToolTipText("Showing the hours, indicate how long the recipe takes to cook");
+        cookTimeHourInput.setModel(new SpinnerNumberModel(0, 0, 100, 1));
+        setFormComponentDetails(cookTimeHourInput);
+        JSpinner cookTimeMinuteInput = new JSpinner();
+        cookTimeMinuteInput.setToolTipText("Showing the minutes, indicate how long the recipe takes to cook");
+        cookTimeMinuteInput.setModel(new SpinnerNumberModel(0, 0, 59, 1));
+        setFormComponentDetails(cookTimeMinuteInput);
 
-        JLabel ingredientsLabel = new JLabel("Ingredients");
-        setFormLabelDetails(ingredientsLabel);
 
-        JLabel ingredientLabel = new JLabel("Ingredient");
-        setFormLabelDetails(ingredientLabel);
+        recipeStats.add(Box.createHorizontalGlue());
+        recipeStats.add(Box.createRigidArea(new Dimension(30, 0)));
+        recipeStats.add(setFormLabelDetails(new JLabel("Serves")));
+        recipeStats.add(Box.createRigidArea(new Dimension(15, 0)));
+        recipeStats.add(servesInput);
+        recipeStats.add(Box.createRigidArea(new Dimension(30, 0)));
+        recipeStats.add(setFormLabelDetails(new JLabel("Prep Time")));
+        recipeStats.add(Box.createRigidArea(new Dimension(15, 0)));
+        recipeStats.add(prepTimeHourInput);
+        recipeStats.add(prepTimeMinuteInput);
+        recipeStats.add(Box.createRigidArea(new Dimension(20, 0)));
+        recipeStats.add(setFormLabelDetails(new JLabel("Cook Time")));
+        recipeStats.add(Box.createRigidArea(new Dimension(15, 0)));
+        recipeStats.add(cookTimeHourInput);
+        recipeStats.add(cookTimeMinuteInput);
+        recipeStats.add(Box.createRigidArea(new Dimension(30, 0)));
+        recipeStats.add(Box.createHorizontalGlue());
 
-        JLabel ingredientAmountLabel = new JLabel("Amount");
-        setFormLabelDetails(ingredientAmountLabel);
-
-        JLabel ingredientMeasurementLabel = new JLabel("Measurement");
-        setFormLabelDetails(ingredientMeasurementLabel);
-
-        JLabel methodLabel = new JLabel("Method");
-        setFormLabelDetails(methodLabel);
-
-        JLabel methodStepLabel = new JLabel("Step: ");
-        setFormLabelDetails(methodStepLabel);
-
-        JTextField nameField = new JTextField();
-        setFormComponentDetails(nameField);
-        nameField.setColumns(20);
-
-        JTextField prepField = new JTextField();
-        setFormComponentDetails(prepField);
-        prepField.setColumns(10);
-
-        JTextField cookField = new JTextField();
-        setFormComponentDetails(cookField);
-        cookField.setColumns(10);
-
-        JTextField ingredientsField = new JTextField();
-        setFormComponentDetails(ingredientsField);
-        ingredientsField.setColumns(17);
-
-        JTextField ingredientsAmountField = new JTextField();
-        setFormComponentDetails(ingredientsAmountField);
-        ingredientsAmountField.setColumns(6);
-        ingredientsAmountField.addKeyListener(new KeyAdapter() { //limit textField to numbers only
-            public void keyPressed(KeyEvent ke) {
-                ingredientsAmountField.setEditable(ke.getKeyChar() >= '0' && ke.getKeyChar() <= '9');
-            }
-        });
-
-        JTextField methodField = new JTextField();
-        setFormComponentDetails(methodField);
-        methodField.setColumns(25);
-
-        methodField.setToolTipText("Write the method step, without the step number.");
-
-        JSlider servesSlider = new JSlider();
-        servesSlider.setMinimum(1);
-        servesSlider.setMaximum(20);
-        servesSlider.setMinorTickSpacing(1);
-        setFormComponentDetails(servesSlider);
-
-        JComboBox<String> ingredientsMeasurementComboBox = new JComboBox<>();
-        //TODO: create a collection of approved measurement types, perhaps an enum, and add them to the combo box
-
-        DefaultListModel<String> ingredientsModel = new DefaultListModel<>();
-        JList<? extends String>  ingredientsList = new JList<>(ingredientsModel);
-        setFormComponentDetails(ingredientsList);
-        ingredientsList.setPreferredSize(new Dimension(300, 100));
-
-        DefaultListModel<String> methodStepsModel = new DefaultListModel<>();
-        JList<? extends String> methodList = new JList<>(methodStepsModel);
-        setFormComponentDetails(methodList);
-        methodList.setVisible(true);
-
-        JScrollPane ingredientsScroll = new JScrollPane(ingredientsList);
+        JPanel ingredients = new JPanel();
+        ingredients.setLayout(new BoxLayout(ingredients, BoxLayout.Y_AXIS));
+        JPanel ingredientsInputRow = new JPanel();
+        JTextField amountInput = new JTextField("");
+        setFormComponentDetails(amountInput);
+        amountInput.setToolTipText("Enter how many units are required");
+        amountInput.setColumns(4);
+        amountInput.setMaximumSize(new Dimension(20,40));
+        JComboBox<String> measurementInput = new JComboBox<>();
+        setFormComponentDetails(measurementInput);
+        measurementInput.setToolTipText("Choose the unit of measurement");
+        measurementInput.setMaximumSize(new Dimension(40, 40));
+        measurementInput.addItem(null);
+        for (Measurement.UnitsOfMeasurement e : Measurement.UnitsOfMeasurement.values()) {
+            measurementInput.addItem(Measurement.convertToString(e));
+        }
+        JTextField ingredientInput = new JTextField("");
+        setFormComponentDetails(ingredientInput);
+        ingredientInput.setToolTipText("Name the ingredient");
+        ingredientInput.setColumns(10);
+        ingredientInput.setMaximumSize(new Dimension(150, 40));
+        Button addIngredientButton = new Button("Add!");
+        setFormComponentDetails(addIngredientButton);
+        ingredientsInputRow.setLayout(new BoxLayout(ingredientsInputRow, BoxLayout.X_AXIS));
+        ingredientsInputRow.add(Box.createHorizontalGlue());
+        ingredientsInputRow.add(Box.createRigidArea(new Dimension(20, 0)));
+        ingredientsInputRow.add(setFormComponentDetails(measurementInput));
+        ingredientsInputRow.add(Box.createRigidArea(new Dimension(30, 0)));
+        ingredientsInputRow.add(setFormComponentDetails(amountInput));
+        ingredientsInputRow.add(Box.createRigidArea(new Dimension(20, 0)));
+        ingredientsInputRow.add(setFormComponentDetails(ingredientInput));
+        ingredientsInputRow.add(Box.createRigidArea(new Dimension(20, 0)));
+        ingredientsInputRow.add(setFormComponentDetails(addIngredientButton));
+        ingredientsInputRow.add(Box.createRigidArea(new Dimension(30, 0)));
+        ingredientsInputRow.add(Box.createHorizontalGlue());
+        JPanel scrollIncludeIngredients = new JPanel();
+        scrollIncludeIngredients.setLayout(new BoxLayout(scrollIncludeIngredients, BoxLayout.X_AXIS));
+        ingredientsCollection = new Ingredient[10];
+        JList<Ingredient> ingredientsJList = new JList<>(ingredientsCollection);
+        setFormComponentDetails(ingredientsJList);
+        JScrollPane ingredientsScroll = new JScrollPane(ingredientsJList);
+        setFormComponentDetails(ingredientsScroll);
         ingredientsScroll.createVerticalScrollBar();
         ingredientsScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        ingredientsScroll.setPreferredSize(new Dimension(500, 100));
+        ingredientsScroll.setPreferredSize(new Dimension(500, 250));
+        scrollIncludeIngredients.add(Box.createHorizontalGlue());
+        scrollIncludeIngredients.add(ingredientsScroll);
+        scrollIncludeIngredients.add(Box.createHorizontalGlue());
+        JLabel ingredientsTitle = setFormLabelDetails(new JLabel("Ingredients"));
+        ingredientsTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        ingredientsTitle.setToolTipText("Fill out the boxes below and then click 'Add' for each ingredient, \nwhich will appear in the large box below");
+        ingredients.add(new JPanel().add(ingredientsTitle));
+        ingredients.add(Box.createRigidArea(new Dimension(15,  10)));
+        ingredients.add(ingredientsInputRow);
+        ingredients.add(Box.createRigidArea(new Dimension(15, 10)));
+        ingredients.add(scrollIncludeIngredients);
 
-        JScrollPane methodScroll = new JScrollPane(methodList);
+        JPanel method = new JPanel();
+        method.setLayout(new BoxLayout(method, BoxLayout.Y_AXIS));
+
+        JTextField stepInput = new JTextField();
+        setFormComponentDetails(stepInput);
+        stepInput.setToolTipText("Fill out the instructions for a step, not including the step number \n(that will be included for you)");
+        stepInput.setColumns(35);
+        Button addStepButton = new Button("Add!");
+        setFormComponentDetails(addStepButton);
+        JPanel stepInputRow = new JPanel();
+        stepInputRow.add(stepInput);
+        stepInputRow.add(addStepButton);
+
+        JPanel scrollIncludeMethod = new JPanel();
+        scrollIncludeMethod.setLayout(new BoxLayout(scrollIncludeMethod, BoxLayout.X_AXIS));
+
+        stepsCollection = new Instruction[10];
+        JList<Instruction> stepsJList = new JList<>(stepsCollection);
+        setFormComponentDetails(stepsJList);
+        JScrollPane methodScroll = new JScrollPane(stepsJList);
+        setFormComponentDetails(methodScroll);
         methodScroll.createVerticalScrollBar();
         methodScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        methodScroll.setPreferredSize(new Dimension(500, 100));
+        methodScroll.setPreferredSize(new Dimension(500, 250));
+        scrollIncludeMethod.add(Box.createHorizontalGlue());
+        scrollIncludeMethod.add(methodScroll);
+        scrollIncludeMethod.add(Box.createHorizontalGlue());
+        JLabel methodTitle = setFormLabelDetails(new JLabel("Method"));
+        methodTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        methodTitle.setToolTipText("Fill out the box below for each recipe step, in order from first to last, \nclicking 'Add' for each.");
+        method.add(new JPanel().add(methodTitle));
+        method.add(Box.createRigidArea(new Dimension(15,  10)));
+        method.add(stepInputRow);
+        method.add(Box.createRigidArea(new Dimension(15, 10)));
+        method.add(scrollIncludeMethod);
 
-        Button ingredientButton = new Button("OK!");
-        //TODO: add fields for amount and measurement type to go before ingredient field
-        setFormComponentDetails(ingredientButton);
-        ingredientButton.setPreferredSize(recipeFormButtonSize);
-        ingredientButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!ingredientsField.getText().equals("")) {
-                    //listOfIngredients.add(ingredientsField.getText())
+
+        JPanel finalButtons = new JPanel();
+        finalButtons.setLayout(new BoxLayout(finalButtons, BoxLayout.X_AXIS));
+        Button cancelButton = new Button("Cancel");
+        setFormComponentDetails(cancelButton);
+        cancelButton.setMaximumSize(recipeFormButtonSize);
+        cancelButton.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        Button doneButton = new Button(" Done ");
+        setFormComponentDetails(doneButton);
+        doneButton.setMaximumSize(recipeFormButtonSize);
+        doneButton.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        finalButtons.add(Box.createHorizontalGlue());
+        finalButtons.add(cancelButton);
+        finalButtons.add(Box.createRigidArea(new Dimension(15, 10)));
+        finalButtons.add(doneButton);
+        finalButtons.add(Box.createRigidArea(new Dimension(20, 10)));
+
+
+
+        recipeFormWindow = new JFrame("Enter your recipe");
+        recipeFormWindow.getContentPane().setBackground(bgCol);
+        JPanel mainPanel = new JPanel();
+        BoxLayout layout = new BoxLayout(mainPanel, BoxLayout.Y_AXIS);
+        mainPanel.setLayout(layout);
+
+        mainPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        mainPanel.add(Box.createRigidArea(new Dimension(10, 40)));
+        mainPanel.add(name);
+        mainPanel.add(Box.createRigidArea(new Dimension(15, 20)));
+        mainPanel.add(recipeStats);
+        mainPanel.add(Box.createRigidArea(new Dimension(15, 20)));
+        mainPanel.add(ingredients);
+        mainPanel.add(Box.createRigidArea(new Dimension(15, 20)));
+        mainPanel.add(method);
+        mainPanel.add(Box.createRigidArea(new Dimension(15, 20)));
+        mainPanel.add(finalButtons);
+        mainPanel.add(Box.createRigidArea(new Dimension(10, 40)));
+
+
+        recipeFormWindow.add(mainPanel);
+        recipeFormWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); //ideally will have a cancel button that we prefer user to use
+        recipeFormWindow.pack();
+        recipeFormWindow.setLocationRelativeTo(null);
+        recipeFormWindow.setVisible(true);
+
+        JOptionPane openInfo = new JOptionPane();
+        openInfo.setOptionType(JOptionPane.DEFAULT_OPTION);
+        openInfo.setMessage("Enter your recipe information..! \nHover over any element to see more information about it!");
+        JDialog openInfoDialog = openInfo.createDialog("Helpful Information");
+        openInfoDialog.pack();
+        openInfoDialog.setVisible(true);
+        int dialogChoice = (Integer) openInfo.getValue();
+        if (dialogChoice == JOptionPane.OK_OPTION) {
+            openInfoDialog.setVisible(false);
+        }
+
+        addIngredientButton.addActionListener(e -> {
+            if (!ingredientInput.getText().equals("") && !amountInput.getText().equals("") && measurementInput.getSelectedItem() != null) {
+                    if (ingredientsCollection[ingredientsCollection.length-1] != null) {
+                        //make list bigger
+                        Ingredient[] temp = new Ingredient[ingredientsCollection.length + 5];
+                        for (int i = 0; i < ingredientsCollection.length; i++) {
+                            temp[i] = ingredientsCollection[i];
+                        }
+                        ingredientsCollection = temp;
+                    }
+                    for (int i = 0; i < ingredientsCollection.length; i++) {
+                        if (ingredientsCollection[i] != null) { continue; }
+                        ingredientsCollection[i] = new Ingredient(amountInput.getText(), measurementInput.getSelectedItem().toString(), ingredientInput.getText());
+                        amountInput.setText("");
+                        ingredientInput.setText("");
+                        measurementInput.setSelectedIndex(0);
+                        ingredientsJList.setListData(ingredientsCollection);
+                        break;
+                    }
+                }
+
+            else {
+                JOptionPane option = new JOptionPane();
+                option.setOptionType(JOptionPane.DEFAULT_OPTION);
+                option.setMessage("You haven't filled out all of the boxes! Please check and try again");
+                JDialog dialog = option.createDialog("Missing Information");
+                dialog.pack();
+                dialog.setVisible(true);
+                int choice = (Integer) option.getValue();
+                if (choice == JOptionPane.OK_OPTION) {
+                    dialog.setVisible(false);
                 }
             }
         });
 
-        Button methodButton = new Button("OK!");
-        setFormComponentDetails(methodButton);
-        methodButton.setPreferredSize(recipeFormButtonSize);
-        methodButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!methodField.getText().equals("")) {
-                    if (!Character.isDigit(methodField.getText().charAt(0))) {
-                        methodStepsModel.addElement(methodField.getText());
-                        methodField.setText("");
-                    }
-                    else {
-                        JOptionPane option = new JOptionPane();
-                        option.setOptionType(JOptionPane.DEFAULT_OPTION);
-                        option.setMessage("The first character of your method step cannot be numeric!");
-                        JDialog dialog = option.createDialog("Incorrect Format");
-                        dialog.pack();
-                        dialog.setVisible(true);
-                        int choice = (Integer) option.getValue();
-                        if (choice == JOptionPane.OK_OPTION) {
-                            dialog.setVisible(false);
+        addStepButton.addActionListener(e -> {
+            if (!stepInput.getText().equals("")) {
+                if (!Character.isDigit(stepInput.getText().charAt(0))) {
+                    if (stepsCollection[stepsCollection.length-1] != null) {
+                        //make list bigger
+                        Instruction[] temp = new Instruction[stepsCollection.length + 5];
+                        for (int i = 0; i < stepsCollection.length; i++) {
+                            temp[i] = stepsCollection[i];
                         }
+                        stepsCollection = temp;
+                    }
+                    for (int i = 0; i < stepsCollection.length; i++) {
+                        if (stepsCollection[i] != null) { continue; }
+                        stepsCollection[i] = new Instruction(stepInput.getText(), i+1);
+                        stepInput.setText("");
+                        stepsJList.setListData(stepsCollection);
+                        break;
                     }
                 }
                 else {
                     JOptionPane option = new JOptionPane();
                     option.setOptionType(JOptionPane.DEFAULT_OPTION);
-                    option.setMessage("You must have content to add.");
+                    option.setMessage("The first character of your method step cannot be numeric!");
                     JDialog dialog = option.createDialog("Incorrect Format");
                     dialog.pack();
                     dialog.setVisible(true);
@@ -424,183 +571,88 @@ public abstract class GUI {
                     }
                 }
             }
-        });
-
-        Button cancelButton = new Button("Cancel");
-        setFormComponentDetails(cancelButton);
-        cancelButton.setMaximumSize(recipeFormButtonSize);
-        cancelButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+            else {
                 JOptionPane option = new JOptionPane();
-                option.setOptionType(JOptionPane.OK_CANCEL_OPTION);
-                option.setMessage("Are you sure you want to cancel? \n You will lose all progress.");
-                JDialog dialog = option.createDialog("Are you sure?");
+                option.setOptionType(JOptionPane.DEFAULT_OPTION);
+                option.setMessage("You must have content to add.");
+                JDialog dialog = option.createDialog("Incorrect Format");
                 dialog.pack();
                 dialog.setVisible(true);
                 int choice = (Integer) option.getValue();
                 if (choice == JOptionPane.OK_OPTION) {
-                    recipeFormWindow.setVisible(false);
-                }
-                else if (choice == JOptionPane.CANCEL_OPTION) {
                     dialog.setVisible(false);
                 }
-
             }
         });
 
-        Button doneButton = new Button(" Done ");
-        setFormComponentDetails(doneButton);
-        doneButton.setMaximumSize(recipeFormButtonSize);
-        doneButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!(cookField.getText().equals("") || nameField.getText().equals("") || prepField.getText().equals("")
-                || ingredientsList.getModel().getSize() == 0 || methodList.getModel().getSize() == 0)) {
-                    //TODO process parser
+        cancelButton.addActionListener(e -> {
+            JOptionPane option = new JOptionPane();
+            option.setOptionType(JOptionPane.OK_CANCEL_OPTION);
+            option.setMessage("Are you sure you want to cancel? \n You will lose all progress.");
+            JDialog dialog = option.createDialog("Are you sure?");
+            dialog.pack();
+            dialog.setVisible(true);
+            int choice = (Integer) option.getValue();
+            if (choice == JOptionPane.OK_OPTION) {
+                recipeFormWindow.setVisible(false);
+            }
+            else if (choice == JOptionPane.CANCEL_OPTION) {
+                dialog.setVisible(false);
+            }
+
+        });
+        doneButton.addActionListener(e -> {
+            if (((int)prepTimeHourInput.getValue() > 0 || (int)prepTimeMinuteInput.getValue() > 0) && ((int)cookTimeHourInput.getValue() > 0 || (int)cookTimeMinuteInput.getValue() > 0)
+                && ingredientsCollection[0] != null && stepsCollection[0] != null && !nameInput.getText().equals(""))  {
+
+                Recipe r = new Recipe(new ArrayList<>(Arrays.asList(ingredientsCollection)),
+                        new Method(Arrays.asList(stepsCollection)),
+                        nameInput.getText(),
+                        Duration.ofHours((int)prepTimeHourInput.getValue()).plus(Duration.ofMinutes((int)prepTimeMinuteInput.getValue())),
+                        Duration.ofHours((int)cookTimeHourInput.getValue()).plus(Duration.ofMinutes((int)cookTimeMinuteInput.getValue())),
+                        servesInput.getValue());
+                saveRecipe(r);
+                JOptionPane option = new JOptionPane();
+                option.setOptionType(JOptionPane.DEFAULT_OPTION);
+                option.setMessage("Recipe has successfully been created!");
+                JDialog dialog = option.createDialog("Success");
+                dialog.pack();
+                dialog.setVisible(true);
+                int choice = (Integer) option.getValue();
+                if (choice == JOptionPane.OK_OPTION) {
+                    recipes.setListData(getRecipes().namesToArray());
+                    dialog.setVisible(false);
+                    recipeFormWindow.setVisible(false);
                 }
-                else {
-                    JOptionPane option = new JOptionPane();
-                    option.setOptionType(JOptionPane.DEFAULT_OPTION);
-                    option.setMessage("A necessary field seems to be empty.");
-                    JDialog dialog = option.createDialog("Missing Information!");
-                    dialog.pack();
-                    dialog.setVisible(true);
-                    int choice = (Integer) option.getValue();
-                    if (choice == JOptionPane.OK_OPTION) {
-                        dialog.setVisible(false);
-                    }
+            }
+            else {
+                JOptionPane option = new JOptionPane();
+                option.setOptionType(JOptionPane.DEFAULT_OPTION);
+                option.setMessage("A necessary field seems to be empty or invalid");
+                JDialog dialog = option.createDialog("Missing Information!");
+                dialog.pack();
+                dialog.setVisible(true);
+                int choice = (Integer) option.getValue();
+                if (choice == JOptionPane.OK_OPTION) {
+                    dialog.setVisible(false);
                 }
             }
         });
-
-        //TODO: insert checkboxes and radio buttons for further specifications eg dietary and meat contents
-
-
-        recipeFormWindow.setLayout(new GridBagLayout());
-        GridBagConstraints constraints = new GridBagConstraints();
-
-        //TODO: layout needs major padding updates
-
-        //add name label
-        constraints.gridx = 0;
-        constraints.gridy = 0;
-        constraints.ipady = 20;
-        constraints.insets = new Insets(5,10,5,10);
-        recipeFormWindow.add(nameLabel, constraints);
-        //add name field
-        constraints.gridx = 1;
-        constraints.gridwidth = 2;
-        recipeFormWindow.add(nameField, constraints);
-        //add serves label
-        constraints.gridx = 0;
-        constraints.gridy = 1;
-        constraints.gridwidth = 1;
-        recipeFormWindow.add(servesLabel, constraints);
-        //add serves slider
-        constraints.gridx = 1;
-        constraints.gridwidth = 4;
-        recipeFormWindow.add(servesSlider, constraints);
-        //add prep label
-        constraints.gridx = 0;
-        constraints.gridy = 2;
-        constraints.gridwidth = 1;
-        recipeFormWindow.add(prepLabel, constraints);
-        //add prep field
-        constraints.gridx = 1;
-        recipeFormWindow.add(prepField, constraints);
-        //add cook label
-        constraints.gridx = 2;
-        recipeFormWindow.add(cookLabel, constraints);
-        //add cook field
-        constraints.gridx = 3;
-        recipeFormWindow.add(cookField, constraints);
-        //add ingredients label
-        constraints.gridx = 0;
-        constraints.gridy = 3;
-        constraints.gridwidth = 2;
-        recipeFormWindow.add(ingredientsLabel, constraints);
-        //add amount field
-        constraints.gridy = 4;
-        constraints.gridwidth = 1;
-        recipeFormWindow.add(ingredientsAmountField, constraints);
-        //add measurement comboBox
-        constraints.gridx = 1;
-        recipeFormWindow.add(ingredientsMeasurementComboBox, constraints);
-        //add ingredient field
-        constraints.gridx = 2;
-        constraints.gridwidth = 2;
-        recipeFormWindow.add(ingredientsField, constraints);
-        //add ingredient button
-        constraints.gridx = 4;
-        constraints.gridwidth = 1;
-        recipeFormWindow.add(ingredientButton, constraints);
-        //add amount label
-        constraints.gridx = 0;
-        constraints.gridy = 5;
-        recipeFormWindow.add(ingredientAmountLabel, constraints);
-        //add measurement label
-        constraints.gridx = 1;
-        recipeFormWindow.add(ingredientMeasurementLabel, constraints);
-        //add ingredient label
-        constraints.gridx = 2;
-        constraints.gridwidth = 2;
-        recipeFormWindow.add(ingredientLabel, constraints);
-        //add ingredient list
-        //TODO: this will need to be split into more rows when checkboxes get added
-        constraints.gridx = 0;
-        constraints.gridy = 6;
-        constraints.fill = GridBagConstraints.BOTH;
-        constraints.gridwidth = GridBagConstraints.REMAINDER;
-        recipeFormWindow.add(ingredientsScroll, constraints);
-        //add method label
-        constraints.gridy = 7;
-        constraints.fill = GridBagConstraints.NONE;
-        recipeFormWindow.add(methodLabel, constraints);
-        //add step label
-        constraints.gridy = 8;
-        constraints.gridwidth = 1;
-        recipeFormWindow.add(methodStepLabel, constraints);
-        //add method field
-        constraints.gridx = 1;
-        constraints.gridwidth = 3;
-        recipeFormWindow.add(methodField, constraints);
-        //add method button
-        constraints.gridx = 4;
-        constraints.gridwidth = 1;
-        recipeFormWindow.add(methodButton, constraints);
-        //add method list
-        constraints.gridx = 0;
-        constraints.gridy = 9;
-        constraints.fill = GridBagConstraints.BOTH;
-        constraints.gridwidth = GridBagConstraints.REMAINDER;
-        recipeFormWindow.add(methodScroll, constraints);
-        //TODO: there will need to be more rows added here when meal types are added
-        //add cancel button
-        constraints.gridx = 3;
-        constraints.gridy = 10;
-        constraints.gridwidth = 1;
-        recipeFormWindow.add(cancelButton, constraints);
-        //add done button
-        constraints.gridx = 4;
-        constraints.gridwidth = 1;
-        recipeFormWindow.add(doneButton, constraints);
-
-
-        recipeFormWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); //ideally will have a cancel button that we prefer user to use
-        recipeFormWindow.pack();
-        recipeFormWindow.setVisible(true);
     }
 
-    private void setFormComponentDetails(JComponent component) {
+    private JComponent setFormComponentDetails(JComponent component) {
         component.setFont(recipeFormWindowComponentFont);
         component.setForeground(primaryTextCol);
+        return component;
     }
 
-    private void setFormLabelDetails(JLabel label) {
+    private JLabel setFormLabelDetails(JLabel label) {
         label.setFont(recipeFormWindowLabelFont);
         label.setForeground(primaryTextCol);
+        return label;
     }
+
+    protected abstract void saveRecipe(Recipe r);
 
     /**
      * Button innerclass allows more control over the appearance and actions of the buttons in the GUI,

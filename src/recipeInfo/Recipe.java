@@ -5,20 +5,21 @@ import recipeInfo.recipeContents.Measurement;
 import recipeInfo.recipeContents.Method;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 
 public class Recipe {
 
-    private HashMap<Ingredient, Measurement> ingredients;
+    private ArrayList<Ingredient> ingredients;
     private Method method;
     private String name;
     private Duration prepTime;
     private Duration cookTime;
     private int serves;
 
-    public Recipe(HashMap<Ingredient, Measurement> i, Method m, String n, Duration prep, Duration cook, int s) {
-        this.ingredients = new HashMap<>(i);
+    public Recipe(ArrayList<Ingredient> i, Method m, String n, Duration prep, Duration cook, int s) {
+        this.ingredients = new ArrayList<>(i);
         this.method = m;
         this.name = n;
         this.prepTime = prep;
@@ -34,10 +35,8 @@ public class Recipe {
         b.append(name).append("\n");
         b.append("Serves: ").append(serves).append("\n");
         b.append("Prep Time: ").append(prepTime.toMinutes()).append("   Cook Time: ").append(cookTime.toMinutes()).append("   Total Time: ").append(prepTime.plus(cookTime).toMinutes()).append("\n");
-        for (Ingredient i : ingredients.keySet()) {
-            b.append(ingredients.get(i).toString());
-            b.append(" ").append(i.toString());
-            b.append("\n");
+        for (Ingredient i : ingredients) {
+           b.append(i.toString());
         }
         b.append(method.toString());
 
