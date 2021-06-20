@@ -49,16 +49,22 @@ public class Measurement {
     @Override
     public String toString() {
         StringBuilder s = new StringBuilder();
-        s.append(amount);
+        s.append(amount == Math.floor(amount) ? String.valueOf((int)amount) : String.valueOf(amount)); //if amount doesn't need decimal place, get rid of it
         switch (unit) {
             case GRAM -> s.append("g");
-            case CUP -> s.append("c");
+            case CUP -> {
+                if (amount == 1) {
+                    s.append(" cup");
+                } else {
+                    s.append(" cups");
+                }
+            }
             case LITRE -> s.append("L");
             case KILOGRAM -> s.append("kg");
-            case TEASPOON -> s.append("tsp");
+            case TEASPOON -> s.append(" tsp");
             case MILLIGRAM -> s.append("mg");
             case MILLILITRE -> s.append("ml");
-            case TABLESPOON -> s.append("tbsp");
+            case TABLESPOON -> s.append(" tbsp");
         }
         return s.toString();
     }

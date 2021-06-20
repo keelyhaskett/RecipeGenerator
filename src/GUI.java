@@ -11,6 +11,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.nio.file.Path;
 import java.sql.Time;
 import java.time.Duration;
 import java.util.*;
@@ -60,6 +61,7 @@ public abstract class GUI {
 	volatile Instruction[] stepsCollection;
 	volatile Ingredient[] ingredientsCollection;
 	JList<String> recipes;
+	volatile String[] tagsCollection;
 
 
 	public GUI() {
@@ -175,7 +177,7 @@ public abstract class GUI {
 		load.setFont(mainWindowButtonFont);
 		load.setToolTipText("Load a recipe file.");
 		load.addActionListener(e -> {
-			fileChooser.setCurrentDirectory(new File("."));
+			fileChooser.setCurrentDirectory(new File("./Recipes/"));
 			fileChooser.setDialogTitle("Select recipe file.");
 			fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
@@ -304,13 +306,20 @@ public abstract class GUI {
 		recipe.setEditable(false);
 		setFormComponentDetails(recipe);
 		recipe.append(r.toString());
-		recipe.setMinimumSize(new Dimension(12000, 600));
-		recipe.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(pressedButCol, 10), BorderFactory.createEmptyBorder(10,10,10,10)));
+		recipe.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+
+		JScrollPane recipeScroll = new JScrollPane(recipe);
+		recipeScroll.setMaximumSize(new Dimension(1000, 800));
+		recipeScroll.createVerticalScrollBar();
+		recipeScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		recipeScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		recipeScroll.setBorder(BorderFactory.createLineBorder(pressedButCol, 10));
+
 		JPanel formattingPanel = new JPanel();
 		formattingPanel.setBackground(bgCol);
 		formattingPanel.setLayout(new BoxLayout(formattingPanel, BoxLayout.X_AXIS));
 		formattingPanel.add(Box.createRigidArea(new Dimension(20, 10)));
-		formattingPanel.add(recipe);
+		formattingPanel.add(recipeScroll);
 		formattingPanel.add(Box.createRigidArea(new Dimension(20, 10)));
 
 		JPanel mainPanel = new JPanel();
@@ -501,6 +510,40 @@ public abstract class GUI {
 		method.add(Box.createRigidArea(new Dimension(15, 10)));
 		method.add(scrollIncludeMethod);
 
+		JPanel tags = new JPanel();
+		//TODO: make combo fixed height!@!!!!
+		JComboBox<String> tagsComboBox = new JComboBox<>();
+		tagsComboBox.setEditable(true);
+		setFormComponentDetails(tagsComboBox);
+		JTextField tagEditor = (JTextField) tagsComboBox.getEditor().getEditorComponent();
+
+		Button tagButton = new Button("Add!");
+		setFormComponentDetails(tagButton);
+
+		JList<String> tagsJList = new JList<>();
+		tagsCollection = new String[5];
+		tagsJList.setListData(tagsCollection);
+		setFormComponentDetails(tagsJList);
+		JScrollPane tagsScroll = new JScrollPane(tagsJList);
+		Button deleteTagButton = new Button("Delete");
+		JPanel bottomTagsPanel = new JPanel();
+		bottomTagsPanel.setLayout(new BoxLayout(bottomTagsPanel, BoxLayout.X_AXIS));
+		bottomTagsPanel.add(tagButton);
+		bottomTagsPanel.add(Box.createHorizontalGlue());
+		bottomTagsPanel.add(deleteTagButton);
+		JPanel rightTagsPanel = new JPanel();
+		rightTagsPanel.setLayout(new BoxLayout(rightTagsPanel, BoxLayout.Y_AXIS));
+		rightTagsPanel.add(tagsScroll);
+		rightTagsPanel.add(Box.createVerticalGlue());
+		rightTagsPanel.add(bottomTagsPanel);
+
+
+		tags.setLayout(new BoxLayout(tags, BoxLayout.X_AXIS));
+		tags.add(Box.createHorizontalGlue());
+		tags.add(tagsComboBox);
+		tags.add(Box.createRigidArea(new Dimension(20,10)));
+		tags.add(rightTagsPanel);
+
 
 		JPanel finalButtons = new JPanel();
 		finalButtons.setLayout(new BoxLayout(finalButtons, BoxLayout.X_AXIS));
@@ -535,13 +578,15 @@ public abstract class GUI {
 		mainPanel.add(Box.createRigidArea(new Dimension(15, 20)));
 		mainPanel.add(method);
 		mainPanel.add(Box.createRigidArea(new Dimension(15, 20)));
+		mainPanel.add(tags);
+		mainPanel.add(Box.createRigidArea(new Dimension(15, 20)));
 		mainPanel.add(finalButtons);
 		mainPanel.add(Box.createRigidArea(new Dimension(10, 40)));
 
 		recipeFormWindow.add(mainPanel);
 		recipeFormWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); //ideally will have a cancel button that we prefer user to use
 		recipeFormWindow.pack();
-		//recipeFormWindow.setLocationRelativeTo(null);
+		recipeFormWindow.setLocationRelativeTo(null);
 		recipeFormWindow.setVisible(true);
 
 		JOptionPane openInfo = new JOptionPane();
@@ -569,7 +614,7 @@ public abstract class GUI {
 					if (ingredientsCollection[i] != null) {
 						continue;
 					}
-					ingredientsCollection[i] = new Ingredient(Integer.parseInt(amountInput.getText()), measurementInput.getSelectedItem().toString(), ingredientInput.getText());
+					ingredientsCollection[i] = new Ingredient(Double.parseDouble(amountInput.getText()), measurementInput.getSelectedItem().toString(), ingredientInput.getText());
 					amountInput.setText("");
 					ingredientInput.setText("");
 					measurementInput.setSelectedIndex(0);
@@ -647,6 +692,56 @@ public abstract class GUI {
 			}
 		});
 
+		tagEditor.addKeyListener(new KeyListener() {
+			@Override
+			public void keyTyped(KeyEvent e) {
+				String text = tagEditor.getText();
+				if (!text.equals("")) {
+					DefaultComboBoxModel<String> m = new DefaultComboBoxModel<>();
+					HashSet<String> suggestions = getSuggestedTags(text);
+					m.addElement(text);
+					if (suggestions != null) { m.addAll(suggestions); }
+					tagsComboBox.setModel(m);
+					tagsComboBox.showPopup();
+				}
+			}
+
+			@Override public void keyPressed(KeyEvent e) { }
+
+			@Override public void keyReleased(KeyEvent e) { }
+		});
+
+		tagButton.addActionListener(e -> {
+			//TODO: only add if non null
+			if (tagsCollection[tagsCollection.length - 1] != null) {
+				//make list bigger
+				String[] temp = new String[tagsCollection.length + 5];
+				for (int i = 0; i < tagsCollection.length; i++) {
+					temp[i] = tagsCollection[i];
+				}
+				tagsCollection = temp;
+			}
+			for (int i = 0; i < tagsCollection.length; i++) {
+				if (tagsCollection[i] != null) {
+					continue;
+				}
+				tagsCollection[i] = String.valueOf(tagsComboBox.getSelectedItem());
+				DefaultComboBoxModel<String> m = new DefaultComboBoxModel<>();
+				tagsComboBox.setModel(m);
+				tagsJList.setListData(tagsCollection);
+				break;
+			}
+		});
+
+		deleteTagButton.addActionListener(e -> {
+			if (tagsJList.getSelectedIndex() != -1) {
+				for (int i = tagsJList.getSelectedIndex(); i < tagsCollection.length - 1; i++) {
+					tagsCollection[i] = tagsCollection[i+1];
+				}
+				tagsCollection[tagsCollection.length - 1] = null;
+			}
+		});
+
 		cancelButton.addActionListener(e -> {
 			JOptionPane option = new JOptionPane();
 			option.setOptionType(JOptionPane.OK_CANCEL_OPTION);
@@ -682,7 +777,7 @@ public abstract class GUI {
 				int choice = (Integer) option.getValue();
 				if (choice == JOptionPane.OK_OPTION) {
 
-					File file = new File("./" + r.getName().replace(" ", "_") + ".txt");
+					File file = new File("./Recipes/" + r.getName().replace(" ", "_") + ".txt");
 					try {
 						new RecipeParser().parseRecipeToFile(r, file);
 					} catch (FileNotFoundException fileNotFoundException) {
@@ -728,6 +823,10 @@ public abstract class GUI {
 	}
 
 	protected abstract void saveRecipe(Recipe r);
+
+	protected abstract void loadTags(ArrayList<String> tags);
+
+	protected abstract HashSet<String> getSuggestedTags(String tag);
 
 	/**
 	 * Button innerclass allows more control over the appearance and actions of the buttons in the GUI,

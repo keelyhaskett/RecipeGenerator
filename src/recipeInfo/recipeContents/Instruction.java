@@ -16,7 +16,7 @@ public class Instruction {
         boolean needsNewLine = false;
 
         for (int i = 0; i < tempStep.length(); i++) {
-            if (i%30 == 0 && i != 0) {
+            if (i%60 == 0 && i != 0) {
                 needsNewLine = true;
             }
             if (tempStep.charAt(i) == (' ') && needsNewLine) {

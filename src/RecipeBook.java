@@ -2,11 +2,13 @@ import recipeInfo.Recipe;
 import recipeInfo.recipeCategories.RecipeClassifier;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
 public class RecipeBook {
     private ArrayList<Recipe> recipes;
+    private HashSet<String> knownTags;
 
     public RecipeBook(){ recipes = new ArrayList<>(); }
 
@@ -16,6 +18,22 @@ public class RecipeBook {
 
     public void addRecipe(Recipe r) {
         recipes.add(r);
+    }
+
+    public boolean checkAndAddTag(String tag) {
+        if (knownTags.contains(tag.toUpperCase())) { return false; }
+        knownTags.add(tag.toUpperCase());
+        return true;
+    }
+
+    public boolean checkAndAddTag(Collection<String> tags) {
+        boolean anyUnique = false;
+        for (String t : tags) {
+            if (knownTags.contains(t.toUpperCase())) {continue;}
+            anyUnique = true;
+            knownTags.add(t.toUpperCase());
+        }
+        return anyUnique;
     }
 
     public String[] namesToArray() {
