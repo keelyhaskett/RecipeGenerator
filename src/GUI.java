@@ -505,7 +505,7 @@ public abstract class GUI {
         }
 
         addIngredientButton.addActionListener(e -> {
-            if (!ingredientInput.getText().equals("") && !amountInput.getText().equals("") && measurementInput.getSelectedItem() != null) {
+            if (!ingredientInput.getText().equals("") && !amountInput.getText().equals("") && amountInput.getText().matches("\\d+(\\.\\d+)*") && measurementInput.getSelectedItem() != null) {
                     if (ingredientsCollection[ingredientsCollection.length-1] != null) {
                         //make list bigger
                         Ingredient[] temp = new Ingredient[ingredientsCollection.length + 5];
@@ -524,6 +524,18 @@ public abstract class GUI {
                         break;
                     }
                 }
+            else if (!amountInput.getText().matches("\\d+(\\.\\d+)*")) {
+                JOptionPane option = new JOptionPane();
+                option.setOptionType(JOptionPane.DEFAULT_OPTION);
+                option.setMessage("The measurement amount may only be numeric. \nPlease use decimals for fractions, e.g 0.25 instead of 1/4");
+                JDialog dialog = option.createDialog("Incorrect Input");
+                dialog.pack();
+                dialog.setVisible(true);
+                int choice = (Integer) option.getValue();
+                if (choice == JOptionPane.OK_OPTION) {
+                    dialog.setVisible(false);
+                }
+            }
 
             else {
                 JOptionPane option = new JOptionPane();
