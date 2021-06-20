@@ -27,4 +27,8 @@ public class Instruction {
         }
         return b.toString();
     }
+
+    public String toFileFormat() {
+        return "# " + stepNumber + " " + step + " # ";
+    }
 }

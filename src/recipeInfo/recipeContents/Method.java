@@ -22,4 +22,14 @@ public class Method {
         }
         return b.toString();
     }
+
+    public String toFileFormat() {
+        StringBuilder b = new StringBuilder();
+        b.append("<start>");
+        for (Instruction i : steps) {
+            b.append(i.toFileFormat());
+        }
+        b.append("<stop>");
+        return null;
+    }
 }

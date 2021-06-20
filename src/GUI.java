@@ -1,9 +1,6 @@
 
 import recipeInfo.Recipe;
-import recipeInfo.recipeContents.Ingredient;
-import recipeInfo.recipeContents.Instruction;
-import recipeInfo.recipeContents.Measurement;
-import recipeInfo.recipeContents.Method;
+import recipeInfo.recipeContents.*;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -516,7 +513,7 @@ public abstract class GUI {
                     }
                     for (int i = 0; i < ingredientsCollection.length; i++) {
                         if (ingredientsCollection[i] != null) { continue; }
-                        ingredientsCollection[i] = new Ingredient(amountInput.getText(), measurementInput.getSelectedItem().toString(), ingredientInput.getText());
+                        ingredientsCollection[i] = new Ingredient(Integer.parseInt(amountInput.getText()), measurementInput.getSelectedItem().toString(), ingredientInput.getText());
                         amountInput.setText("");
                         ingredientInput.setText("");
                         measurementInput.setSelectedIndex(0);
@@ -620,9 +617,9 @@ public abstract class GUI {
                 Recipe r = new Recipe(new ArrayList<>(Arrays.asList(ingredientsCollection)),
                         new Method(Arrays.asList(stepsCollection)),
                         nameInput.getText(),
-                        Duration.ofHours((int)prepTimeHourInput.getValue()).plus(Duration.ofMinutes((int)prepTimeMinuteInput.getValue())),
+                        new InfoBlock(Duration.ofHours((int)prepTimeHourInput.getValue()).plus(Duration.ofMinutes((int)prepTimeMinuteInput.getValue())),
                         Duration.ofHours((int)cookTimeHourInput.getValue()).plus(Duration.ofMinutes((int)cookTimeMinuteInput.getValue())),
-                        servesInput.getValue());
+                        servesInput.getValue()));
                 saveRecipe(r);
                 JOptionPane option = new JOptionPane();
                 option.setOptionType(JOptionPane.DEFAULT_OPTION);

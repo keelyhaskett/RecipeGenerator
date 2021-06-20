@@ -1,5 +1,6 @@
 package recipeInfo;
 
+import recipeInfo.recipeContents.InfoBlock;
 import recipeInfo.recipeContents.Ingredient;
 import recipeInfo.recipeContents.Measurement;
 import recipeInfo.recipeContents.Method;
@@ -14,27 +15,36 @@ public class Recipe {
     private ArrayList<Ingredient> ingredients;
     private Method method;
     private String name;
-    private Duration prepTime;
-    private Duration cookTime;
-    private int serves;
+    private InfoBlock info;
 
-    public Recipe(ArrayList<Ingredient> i, Method m, String n, Duration prep, Duration cook, int s) {
+    public Recipe(ArrayList<Ingredient> i, Method m, String n, InfoBlock info) {
         this.ingredients = new ArrayList<>(i);
         this.method = m;
         this.name = n;
-        this.prepTime = prep;
-        this.cookTime = cook;
-        this.serves = s;
+        this.info = info;
     }
 
     public String getName() { return name; }
+
+    public String toFileFormat() {
+        StringBuilder b =  new StringBuilder();
+        b.append("( ").append(name).append(" ) \n");
+        b.append(info.toFileFormat());
+        b.append("<start> ");
+        for (Ingredient i : ingredients) {
+            b.append(i.toFileFormat());
+        }
+        b.append("<stop> ");
+        b.append(method.toFileFormat());
+        return b.toString();
+    }
 
     @Override
     public String toString() {
         StringBuilder b =  new StringBuilder();
         b.append(name).append("\n");
-        b.append("Serves: ").append(serves).append("\n");
-        b.append("Prep Time: ").append(prepTime.toMinutes()).append("   Cook Time: ").append(cookTime.toMinutes()).append("   Total Time: ").append(prepTime.plus(cookTime).toMinutes()).append("\n");
+        b.append("Serves: ").append(info.getServes()).append("\n");
+        b.append("Prep Time: ").append(info.getPrepTime().toMinutes()).append("   Cook Time: ").append(info.getCookTime().toMinutes()).append("   Total Time: ").append(info.getPrepTime().plus(info.getCookTime()).toMinutes()).append("\n");
         for (Ingredient i : ingredients) {
            b.append(i.toString());
         }
@@ -49,16 +59,16 @@ public class Recipe {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Recipe recipe = (Recipe) o;
-        return serves == recipe.serves &&
+        return info.getServes() == recipe.info.getServes() &&
                 ingredients.equals(recipe.ingredients) &&
                 method.equals(recipe.method) &&
                 name.equals(recipe.name) &&
-                prepTime.equals(recipe.prepTime) &&
-                cookTime.equals(recipe.cookTime);
+                info.getPrepTime().equals(recipe.info.getPrepTime()) &&
+                info.getCookTime().equals(recipe.info.getCookTime());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ingredients, method, name, prepTime, cookTime, serves);
+        return Objects.hash(ingredients, method, name, info);
     }
 }

@@ -1,12 +1,16 @@
 package recipeInfo.recipeContents;
 
 public class Measurement {
-    private final String amount;
+    private final double amount;
     private final UnitsOfMeasurement unit;
 
-    public Measurement(String a, UnitsOfMeasurement u) {
+    public Measurement(double a, UnitsOfMeasurement u) {
         this.amount = a;
         this.unit = u;
+    }
+
+    public String toFileFormat() {
+        return amount + " " + convertToString(unit);
     }
 
     public enum UnitsOfMeasurement {
