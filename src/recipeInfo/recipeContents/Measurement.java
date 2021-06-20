@@ -18,67 +18,32 @@ public class Measurement {
     }
 
     public static UnitsOfMeasurement convertToUnit(String s) {
-        switch (s) {
-            case "gram":
-                return UnitsOfMeasurement.GRAM;
-            case "cup":
-                return UnitsOfMeasurement.CUP;
-
-            case "litre":
-                return UnitsOfMeasurement.LITRE;
-
-            case "kilogram":
-                return UnitsOfMeasurement.KILOGRAM;
-
-            case "teaspoon":
-                return UnitsOfMeasurement.TEASPOON;
-
-            case "milligram":
-                return UnitsOfMeasurement.MILLIGRAM;
-
-            case "millilitre":
-                return UnitsOfMeasurement.MILLILITRE;
-
-            case "tablespoon":
-                return UnitsOfMeasurement.TABLESPOON;
-
-            case "each":
-                return UnitsOfMeasurement.EACH;
-        }
-        return null;
+        return switch (s) {
+            case "gram" -> UnitsOfMeasurement.GRAM;
+            case "cup" -> UnitsOfMeasurement.CUP;
+            case "litre" -> UnitsOfMeasurement.LITRE;
+            case "kilogram" -> UnitsOfMeasurement.KILOGRAM;
+            case "teaspoon" -> UnitsOfMeasurement.TEASPOON;
+            case "milligram" -> UnitsOfMeasurement.MILLIGRAM;
+            case "millilitre" -> UnitsOfMeasurement.MILLILITRE;
+            case "tablespoon" -> UnitsOfMeasurement.TABLESPOON;
+            case "each" -> UnitsOfMeasurement.EACH;
+            default -> null;
+        };
     }
 
     public static String convertToString(UnitsOfMeasurement unit) {
-        switch (unit) {
-            case GRAM:
-                return "gram";
-
-            case CUP:
-                return "cup";
-
-            case LITRE:
-                return "litre";
-
-            case KILOGRAM:
-                return "kilogram";
-
-            case TEASPOON:
-                return "teaspoon";
-
-            case MILLIGRAM:
-                return "milligram";
-
-            case MILLILITRE:
-                return "millilitre";
-
-            case TABLESPOON:
-                return "tablespoon";
-
-            case EACH:
-                return "each";
-
-        }
-        return null;
+        return switch (unit) {
+            case GRAM -> "gram";
+            case CUP -> "cup";
+            case LITRE -> "litre";
+            case KILOGRAM -> "kilogram";
+            case TEASPOON -> "teaspoon";
+            case MILLIGRAM -> "milligram";
+            case MILLILITRE -> "millilitre";
+            case TABLESPOON -> "tablespoon";
+            case EACH -> "each";
+        };
     }
 
     @Override
@@ -86,38 +51,14 @@ public class Measurement {
         StringBuilder s = new StringBuilder();
         s.append(amount);
         switch (unit) {
-            case GRAM:
-                s.append(" g");
-                break;
-
-            case CUP:
-                s.append(" c");
-                break;
-
-            case LITRE:
-                s.append(" l");
-                break;
-
-            case KILOGRAM:
-                s.append(" kg");
-                break;
-
-            case TEASPOON:
-                s.append(" tsp");
-                break;
-
-            case MILLIGRAM:
-                s.append(" mg");
-                break;
-
-            case MILLILITRE:
-                s.append(" ml");
-                break;
-
-            case TABLESPOON:
-                s.append(" tbsp");
-                break;
-
+            case GRAM -> s.append("g");
+            case CUP -> s.append("c");
+            case LITRE -> s.append("L");
+            case KILOGRAM -> s.append("kg");
+            case TEASPOON -> s.append("tsp");
+            case MILLIGRAM -> s.append("mg");
+            case MILLILITRE -> s.append("ml");
+            case TABLESPOON -> s.append("tbsp");
         }
         return s.toString();
     }

@@ -1,15 +1,16 @@
 import recipeInfo.Recipe;
 import recipeInfo.recipeCategories.RecipeClassifier;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
 public class RecipeBook {
-    private HashSet<Recipe> recipes;
+    private ArrayList<Recipe> recipes;
 
-    public RecipeBook(){ recipes = new HashSet<>(); }
+    public RecipeBook(){ recipes = new ArrayList<>(); }
 
-    public RecipeBook(HashSet<Recipe> r) {
+    public RecipeBook(ArrayList<Recipe> r) {
         this.recipes = r;
     }
 
@@ -25,6 +26,13 @@ public class RecipeBook {
             count++;
         }
         return names;
+    }
+
+    public Recipe getRecipeAt(int index) {
+        if (index >= recipes.size()) {
+            return null;
+        }
+        return recipes.get(index);
     }
 
     /**

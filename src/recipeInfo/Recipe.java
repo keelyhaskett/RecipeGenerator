@@ -30,7 +30,7 @@ public class Recipe {
         StringBuilder b =  new StringBuilder();
         b.append("( ").append(name).append(" ) ");
         b.append(info.toFileFormat());
-        b.append("<start> ");
+        b.append(" <start> ");
         for (Ingredient i : ingredients) {
             b.append(i.toFileFormat());
         }
@@ -44,11 +44,15 @@ public class Recipe {
         StringBuilder b =  new StringBuilder();
         b.append(name).append("\n");
         b.append("Serves: ").append(info.getServes()).append("\n");
-        b.append("Prep Time: ").append(info.getPrepTime().toMinutes()).append("   Cook Time: ").append(info.getCookTime().toMinutes()).append("   Total Time: ").append(info.getPrepTime().plus(info.getCookTime()).toMinutes()).append("\n");
+        b.append("Prep Time: ").append(((int) info.getPrepTime().toMinutes()) / 60).append(":").append(info.getPrepTime().toMinutes() % 60);
+        b.append("   Cook Time: ").append(((int) info.getCookTime().toMinutes()) / 60).append(":").append(info.getCookTime().toMinutes() % 60);
+        Duration totTime = info.getPrepTime().plus(info.getCookTime());
+        b.append("   Total Time: ").append(((int) totTime.toMinutes()) / 60).append(":").append(totTime.toMinutes() % 60).append("\n\n");
+        b.append("Ingredients: \n");
         for (Ingredient i : ingredients) {
            b.append(i.toString());
         }
-        b.append(method.toString());
+        b.append("\n").append(method.toString());
 
 
         return b.toString();

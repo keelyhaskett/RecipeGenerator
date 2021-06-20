@@ -18,7 +18,7 @@ public class RecipeParser {
 		String title = parseLetterSeqIn(scanner);
 
 		InfoBlock info = parseInfoBlock(scanner);
-		
+
 		ArrayList<Ingredient> ingredients = parseIngredientBlock(scanner);
 
 		Method method = parseMethod(scanner);
@@ -82,7 +82,6 @@ public class RecipeParser {
 			if (!ingredient.toString().equals("")) { ingredient.append(" "); }
 			ingredient.append(token);
 		}
-		ingredient.deleteCharAt(ingredient.length()-1);
 		return new Ingredient(amount, unit, ingredient.toString());
 	}
 

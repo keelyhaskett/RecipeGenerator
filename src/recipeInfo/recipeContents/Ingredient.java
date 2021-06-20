@@ -11,11 +11,10 @@ public class Ingredient {
 
 	@Override
 	public String toString() {
-		return measurement.toString() + " " + ingredient;
+		return measurement.toString() + " " + ingredient + "\n";
 	}
 
 	public String toFileFormat() {
 		return "( " + measurement.toFileFormat() + " " + ingredient + " ) ";
 	}
-//TODO: maybe make this a class??? or just a string field in the ingredients hashmap instead?
 }
