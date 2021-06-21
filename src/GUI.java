@@ -29,8 +29,8 @@ public abstract class GUI {
 	private static final int START_WINDOW_TITLE_TEXT_SIZE = 60;
 	private static final int MAIN_WINDOW_BUTTON_TEXT_SIZE = 20;
 	private static final int RECIPE_LIST_TEXT_SIZE = 15;
-	private static final int RECIPE_FORM_TEXT_SIZE = 20;
-	private static final int RECIPE_FORM_COMPONENT_TEXT_SIZE = 20;
+	private static final int RECIPE_FORM_TEXT_SIZE = 15;
+	private static final int RECIPE_FORM_COMPONENT_TEXT_SIZE = 15;
 
 	private final Dimension startWindowButtonSize = new Dimension(100, 60);
 	private final Dimension startWindowMinimumSize = new Dimension(800, 500);
@@ -185,7 +185,9 @@ public abstract class GUI {
 				//acceptable file
 				File file = fileChooser.getSelectedFile();
 				try {
-					saveRecipe(new RecipeParser().parseRecipeFromFile(file));
+					Recipe r = new RecipeParser().parseRecipeFromFile(file);
+					saveRecipe(r);
+					loadTags(r.getTags());
 					refreshRecipeList();
 				} catch (FileNotFoundException fileNotFoundException) {
 					//TODO: add dialog to say communicate error
@@ -258,14 +260,9 @@ public abstract class GUI {
 		recipes = new JList<>();
 		recipes.setListData(getRecipes().namesToArray()); //add all of the name of recipes in recipeBook to the list
 		recipes.setLayoutOrientation(JList.VERTICAL);
-		recipes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); //TODO: change this to multiple selection when understanding
+		recipes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		recipes.setFont(new Font("Helvetica", Font.PLAIN, RECIPE_LIST_TEXT_SIZE));
-		recipes.addListSelectionListener(new ListSelectionListener() {
-			@Override
-			public void valueChanged(ListSelectionEvent e) {
 
-			}
-		});
 		JScrollPane recipeScroll = new JScrollPane(recipes);
 		recipeScroll.createVerticalScrollBar();
 		recipeScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED); //only show scroll when necessary
@@ -288,7 +285,7 @@ public abstract class GUI {
 
 
 		mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //makes the instance finish when GUI is closed
-		mainWindow.setLayout(new FlowLayout(FlowLayout.CENTER, 30, 0)); //TODO: maybe make this BorderLayout instead? look into it
+		mainWindow.setLayout(new FlowLayout(FlowLayout.CENTER, 30, 0));
 		mainWindow.add(buttonPanel);
 		mainWindow.add(recipePanel);
 
@@ -299,6 +296,10 @@ public abstract class GUI {
 
 	}
 
+	/**
+	 * Build window to display a recipe.
+	 * @param r Recipe to display.
+	 */
 	private void buildRecipeDisplayWindow(Recipe r) {
 		JFrame recipeWindow = new JFrame("Recipe View");
 
@@ -330,6 +331,7 @@ public abstract class GUI {
 		mainPanel.add(Box.createRigidArea(new Dimension(15, 20)));
 		recipeWindow.add(mainPanel);
 		recipeWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		recipeWindow.setMaximumSize(new Dimension((int)(Toolkit.getDefaultToolkit().getScreenSize().width * 0.9), (int)(Toolkit.getDefaultToolkit().getScreenSize().height * 0.9)));
 		recipeWindow.pack();
 		recipeWindow.setLocationRelativeTo(null);
 		recipeWindow.setVisible(true);
@@ -461,7 +463,7 @@ public abstract class GUI {
 		setFormComponentDetails(ingredientsScroll);
 		ingredientsScroll.createVerticalScrollBar();
 		ingredientsScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		ingredientsScroll.setPreferredSize(new Dimension(500, 250));
+		ingredientsScroll.setPreferredSize(new Dimension(500, 80));
 		scrollIncludeIngredients.add(Box.createHorizontalGlue());
 		scrollIncludeIngredients.add(ingredientsScroll);
 		scrollIncludeIngredients.add(Box.createHorizontalGlue());
@@ -497,7 +499,7 @@ public abstract class GUI {
 		setFormComponentDetails(methodScroll);
 		methodScroll.createVerticalScrollBar();
 		methodScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		methodScroll.setPreferredSize(new Dimension(500, 250));
+		methodScroll.setPreferredSize(new Dimension(500, 80));
 		scrollIncludeMethod.add(Box.createHorizontalGlue());
 		scrollIncludeMethod.add(methodScroll);
 		scrollIncludeMethod.add(Box.createHorizontalGlue());
@@ -511,8 +513,8 @@ public abstract class GUI {
 		method.add(scrollIncludeMethod);
 
 		JPanel tags = new JPanel();
-		//TODO: make combo fixed height!@!!!!
 		JComboBox<String> tagsComboBox = new JComboBox<>();
+		tagsComboBox.setMaximumSize(new Dimension(60, 30));
 		tagsComboBox.setEditable(true);
 		setFormComponentDetails(tagsComboBox);
 		JTextField tagEditor = (JTextField) tagsComboBox.getEditor().getEditorComponent();
@@ -525,7 +527,9 @@ public abstract class GUI {
 		tagsJList.setListData(tagsCollection);
 		setFormComponentDetails(tagsJList);
 		JScrollPane tagsScroll = new JScrollPane(tagsJList);
+		tagsScroll.setPreferredSize(new Dimension(30, 60));
 		Button deleteTagButton = new Button("Delete");
+		setFormComponentDetails(deleteTagButton);
 		JPanel bottomTagsPanel = new JPanel();
 		bottomTagsPanel.setLayout(new BoxLayout(bottomTagsPanel, BoxLayout.X_AXIS));
 		bottomTagsPanel.add(tagButton);
@@ -533,17 +537,18 @@ public abstract class GUI {
 		bottomTagsPanel.add(deleteTagButton);
 		JPanel rightTagsPanel = new JPanel();
 		rightTagsPanel.setLayout(new BoxLayout(rightTagsPanel, BoxLayout.Y_AXIS));
+		rightTagsPanel.add(Box.createRigidArea(new Dimension(20,10)));
 		rightTagsPanel.add(tagsScroll);
-		rightTagsPanel.add(Box.createVerticalGlue());
+		rightTagsPanel.add(Box.createRigidArea(new Dimension(20,10)));
 		rightTagsPanel.add(bottomTagsPanel);
-
 
 		tags.setLayout(new BoxLayout(tags, BoxLayout.X_AXIS));
 		tags.add(Box.createHorizontalGlue());
 		tags.add(tagsComboBox);
 		tags.add(Box.createRigidArea(new Dimension(20,10)));
 		tags.add(rightTagsPanel);
-
+		tags.add(Box.createRigidArea(new Dimension(20,10)));
+		tags.add(Box.createHorizontalGlue());
 
 		JPanel finalButtons = new JPanel();
 		finalButtons.setLayout(new BoxLayout(finalButtons, BoxLayout.X_AXIS));
@@ -552,7 +557,7 @@ public abstract class GUI {
 		cancelButton.setMaximumSize(recipeFormButtonSize);
 		cancelButton.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
-		Button doneButton = new Button(" Done ");
+		Button doneButton = new Button("Done");
 		setFormComponentDetails(doneButton);
 		doneButton.setMaximumSize(recipeFormButtonSize);
 		doneButton.setAlignmentX(Component.RIGHT_ALIGNMENT);
@@ -569,11 +574,11 @@ public abstract class GUI {
 		mainPanel.setLayout(layout);
 
 		mainPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-		mainPanel.add(Box.createRigidArea(new Dimension(10, 40)));
+		mainPanel.add(Box.createRigidArea(new Dimension(10, 20)));
 		mainPanel.add(name);
 		mainPanel.add(Box.createRigidArea(new Dimension(15, 20)));
 		mainPanel.add(recipeStats);
-		mainPanel.add(Box.createRigidArea(new Dimension(15, 20)));
+		mainPanel.add(Box.createRigidArea(new Dimension(15, 10)));
 		mainPanel.add(ingredients);
 		mainPanel.add(Box.createRigidArea(new Dimension(15, 20)));
 		mainPanel.add(method);
@@ -581,7 +586,7 @@ public abstract class GUI {
 		mainPanel.add(tags);
 		mainPanel.add(Box.createRigidArea(new Dimension(15, 20)));
 		mainPanel.add(finalButtons);
-		mainPanel.add(Box.createRigidArea(new Dimension(10, 40)));
+		mainPanel.add(Box.createRigidArea(new Dimension(10, 20)));
 
 		recipeFormWindow.add(mainPanel);
 		recipeFormWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); //ideally will have a cancel button that we prefer user to use
@@ -695,24 +700,20 @@ public abstract class GUI {
 		tagEditor.addKeyListener(new KeyListener() {
 			@Override
 			public void keyTyped(KeyEvent e) {
-				String text = tagEditor.getText();
-				if (!text.equals("")) {
-					DefaultComboBoxModel<String> m = new DefaultComboBoxModel<>();
-					HashSet<String> suggestions = getSuggestedTags(text);
-					m.addElement(text);
-					if (suggestions != null) { m.addAll(suggestions); }
-					tagsComboBox.setModel(m);
-					tagsComboBox.showPopup();
+
 				}
-			}
-
-			@Override public void keyPressed(KeyEvent e) { }
-
+			@Override public void keyPressed(KeyEvent e) { String text = tagEditor.getText();
+			if (!text.equals("")) {
+				DefaultComboBoxModel<String> m = new DefaultComboBoxModel<>();
+				HashSet<String> suggestions = getSuggestedTags(text);
+				m.addElement(text);
+				if (suggestions != null) { m.addAll(suggestions); }
+				tagsComboBox.setModel(m);
+				tagsComboBox.showPopup();}}
 			@Override public void keyReleased(KeyEvent e) { }
 		});
 
 		tagButton.addActionListener(e -> {
-			//TODO: only add if non null
 			if (tagsCollection[tagsCollection.length - 1] != null) {
 				//make list bigger
 				String[] temp = new String[tagsCollection.length + 5];
@@ -766,7 +767,8 @@ public abstract class GUI {
 						nameInput.getText(),
 						new InfoBlock(Duration.ofHours((int) prepTimeHourInput.getValue()).plus(Duration.ofMinutes((int) prepTimeMinuteInput.getValue())),
 								Duration.ofHours((int) cookTimeHourInput.getValue()).plus(Duration.ofMinutes((int) cookTimeMinuteInput.getValue())),
-								servesInput.getValue()));
+								servesInput.getValue()),
+						new ArrayList<>(Arrays.stream(tagsCollection).filter(Objects::nonNull).collect(Collectors.toList())));
 				saveRecipe(r);
 				JOptionPane option = new JOptionPane();
 				option.setOptionType(JOptionPane.DEFAULT_OPTION);

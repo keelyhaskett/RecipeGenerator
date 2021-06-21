@@ -10,7 +10,10 @@ public class RecipeBook {
     private ArrayList<Recipe> recipes;
     private HashSet<String> knownTags;
 
-    public RecipeBook(){ recipes = new ArrayList<>(); }
+    public RecipeBook(){
+        recipes = new ArrayList<>();
+        knownTags = new HashSet<>();
+    }
 
     public RecipeBook(ArrayList<Recipe> r) {
         this.recipes = r;

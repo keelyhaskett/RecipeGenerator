@@ -16,9 +16,7 @@ public class Method {
     public String toString() {
         StringBuilder b = new StringBuilder();
         b.append("Steps: ").append("\n");
-        for (int i = 0; i < steps.size(); i++) {
-            b.append(steps.get(i).toString()).append("\n");
-        }
+        steps.forEach(step -> b.append(step.toString()).append("\n"));
         return b.toString();
     }
 

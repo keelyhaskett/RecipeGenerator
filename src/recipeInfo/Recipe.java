@@ -18,11 +18,16 @@ public class Recipe {
     private InfoBlock info;
     private ArrayList<String> tags;
 
-    public Recipe(ArrayList<Ingredient> i, Method m, String n, InfoBlock info) {
+    public Recipe(ArrayList<Ingredient> i, Method m, String n, InfoBlock info, ArrayList<String> t) {
         this.ingredients = new ArrayList<>(i);
         this.method = m;
         this.name = n;
         this.info = info;
+        this.tags = new ArrayList<>(t);
+    }
+
+    public ArrayList<String> getTags() {
+        return tags;
     }
 
     public String getName() { return name; }
@@ -37,6 +42,10 @@ public class Recipe {
         }
         b.append("<stop> ");
         b.append(method.toFileFormat());
+        b.append("\n").append(" <tagOpen ");
+        tags.forEach(s -> b.append(" ( ").append(s).append(" ) "));
+        b.append(" <tagClose>");
+
         return b.toString();
     }
 
@@ -59,10 +68,11 @@ public class Recipe {
         if (minutes < 10) {b.append(0);}
         b.append(minutes).append("\n\n");
         b.append("Ingredients: \n");
-        for (Ingredient i : ingredients) {
-           b.append(i.toString());
-        }
+        ingredients.forEach(i -> b.append(i.toString()));
         b.append("\n").append(method.toString());
+        b.append("\n").append("Tags: ");
+        tags.forEach(s ->b.append(s).append(", "));
+        b.deleteCharAt(b.length()-2);
 
 
         return b.toString();

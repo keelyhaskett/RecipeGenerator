@@ -26,6 +26,7 @@ public class RecipeGenerator extends GUI {
     protected void loadTags(ArrayList<String> tags) {
         for (String tag : tags) {
             if (!recipes.checkAndAddTag(tag)) { continue; }
+            tag = tag.toUpperCase();
             //if tag is new, add to the trie
             TagTrieNode current = trie;
             for (int i = 0; i < tag.length(); i++) {

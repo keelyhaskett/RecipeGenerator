@@ -23,8 +23,38 @@ public class RecipeParser {
 
 		Method method = parseMethod(scanner);
 
-		return new Recipe(ingredients, method, title, info);
+		ArrayList<String> tags = parseTags(scanner);
+
+		return new Recipe(ingredients, method, title, info, tags);
 	}
+
+	private ArrayList<String> parseTags(Scanner scanner) {
+		assertExpected(scanner,  "<tagOpen>");
+		ArrayList<String> tags = new ArrayList<>();
+		while (true) {
+			String next = scanner.next();
+			if (next.equals("<tagClose>")) {
+				break;
+			} else if (next.equals("(")) {
+				StringBuilder tag = new StringBuilder();
+				while (true) {
+					String token = scanner.next();
+					if (token.equals(")")) {
+						break;
+					}
+					if (!tag.toString().equals("")) {
+						tag.append(" ");
+					}
+					tag.append(token);
+				}
+				tags.add(tag.toString());
+			} else {
+				throw new IllegalArgumentException("Incorrect Format");
+			}
+		}
+		return tags;
+	}
+
 
 	private Method parseMethod(Scanner scanner) {
 		assertExpected(scanner, "<start>");
