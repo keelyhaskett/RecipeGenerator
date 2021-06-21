@@ -8,8 +8,19 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+/**
+ * In and out parser for recipe files.
+ * Reads files in and creates Recipe objects from valid ones.
+ * Utilizes the toFileFormat() method in Recipe to parse out to a file.
+ */
 public class RecipeParser {
 
+	/**
+	 * Given a file, parse the content and return a new Recipe object
+	 * @param recipeFile    File to parse
+	 * @return  a Recipe object of file
+	 * @throws FileNotFoundException    If file is invalid
+	 */
 	public Recipe parseRecipeFromFile(File recipeFile) throws FileNotFoundException {
 		Scanner scanner = new Scanner(recipeFile);
 		scanner.useDelimiter("\\s+");
@@ -27,6 +38,11 @@ public class RecipeParser {
 		return new Recipe(ingredients, method, title, info, tags);
 	}
 
+	/**
+	 * Parse tags from scanner.
+	 * @param scanner   Scanner to read from
+	 * @return  List of tags
+	 */
 	private ArrayList<String> parseTags(Scanner scanner) {
 		assertExpected(scanner,  "<tagOpen>");
 		ArrayList<String> tags = new ArrayList<>();
@@ -55,6 +71,11 @@ public class RecipeParser {
 	}
 
 
+	/**
+	 * Parse the method from scanner.
+	 * @param scanner   Scanner to read from
+	 * @return  a Method object containing parsed steps
+	 */
 	private Method parseMethod(Scanner scanner) {
 		assertExpected(scanner, "<start>");
 		Method m = new Method(new ArrayList<>());
@@ -71,11 +92,16 @@ public class RecipeParser {
 		return m;
 	}
 
-	private Step parseStep(Scanner scan) {
-		int stepNum = scan.nextInt();
+	/**
+	 * Parses a step from scanner.
+	 * @param scanner   Scanner to read from
+	 * @return  A step object with parsed info
+	 */
+	private Step parseStep(Scanner scanner) {
+		int stepNum = scanner.nextInt();
 		StringBuilder step = new StringBuilder();
 		while (true) {
-			String token = scan.next();
+			String token = scanner.next();
 			if (token.equals("#")) { break; }
 			if (!step.toString().equals("")) { step.append(" "); }
 			step.append(token);
@@ -84,6 +110,11 @@ public class RecipeParser {
 		return new Step(step.toString(), stepNum);
 	}
 
+	/**
+	 * Parses a block of ingredients from the scanner.
+	 * @param scanner   Scanner to read from
+	 * @return  List of ingredients
+	 */
 	private ArrayList<Ingredient> parseIngredientBlock(Scanner scanner) {
 		assertExpected(scanner, "<start>");
 		ArrayList<Ingredient> ingredients = new ArrayList<>();
@@ -100,6 +131,11 @@ public class RecipeParser {
 		return ingredients;
 	}
 
+	/**
+	 * Parse ingredient from scanner.
+	 * @param scanner   Scanner to read from
+	 * @return  a new Ingredient object with info
+	 */
 	private Ingredient parseIngredient(Scanner scanner) {
 		double amount = scanner.nextDouble();
 		String unit = scanner.next();
@@ -114,6 +150,11 @@ public class RecipeParser {
 		return new Ingredient(amount, unit, ingredient.toString());
 	}
 
+	/**
+	 * Parse the info block from scanner
+	 * @param scanner   Scanner to read from
+	 * @return a new InfoBlock object
+	 */
 	private InfoBlock parseInfoBlock(Scanner scanner) {
 		int serves = scanner.nextInt();
 		assertExpected(scanner, ",");
@@ -127,11 +168,16 @@ public class RecipeParser {
 		return new InfoBlock(prep, cook, serves);
 	}
 
-	public String parseLetterSeqIn(Scanner sc) {
-		assertExpected(sc, "(");
+	/**
+	 * Parse a simple string sequence
+	 * @param scanner   Scanner to read from
+	 * @return  String which was parsed
+	 */
+	public String parseLetterSeqIn(Scanner scanner) {
+		assertExpected(scanner, "(");
 		StringBuilder letterSeq = new StringBuilder();
 		while (true) {
-			String token = sc.next();
+			String token = scanner.next();
 			if (token.equals(")")) {
 				break;
 			}
@@ -141,13 +187,22 @@ public class RecipeParser {
 		return letterSeq.toString();
 	}
 
-	public void assertExpected(Scanner sc, String expected) {
-		String token = sc.next();
+	/**
+	 * Throws an error when token read wasn't expected one due to bad formatting
+	 * @param scanner    Scanner to read from
+	 * @param expected  Expected token
+	 */
+	public void assertExpected(Scanner scanner, String expected) {
+		String token = scanner.next();
 		if (!token.equals(expected)) { throw new IllegalArgumentException("Bad Format"); }
 	}
 
-
-
+	/**
+	 * Parse and write a given Recipe object to a given file.
+	 * @param recipe    Recipe to parse out
+	 * @param file  File to write to
+	 * @throws FileNotFoundException if file is invalid
+	 */
 	public void parseRecipeToFile(Recipe recipe, File file) throws FileNotFoundException {
 		PrintWriter p = new PrintWriter(file);
 		System.out.println(recipe.toFileFormat());
@@ -155,6 +210,5 @@ public class RecipeParser {
 		p.flush();
 		p.close();
 	}
-
 }
 

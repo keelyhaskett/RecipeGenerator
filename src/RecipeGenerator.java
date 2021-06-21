@@ -4,9 +4,13 @@ import recipeInfo.tags.TagTrieNode;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+/**
+ * Main class for the program.
+ * Implements any abstract methods from GUI and contains the master RecipeBook and TagTrieNode.
+ */
 public class RecipeGenerator extends GUI {
-    private RecipeBook recipes =  new RecipeBook();
-    private TagTrieNode trie = new TagTrieNode('\u0000');
+    private final RecipeBook recipes =  new RecipeBook();
+    private final TagTrieNode trie = new TagTrieNode('\u0000');
 
     public static void main(String[] args) {
         new RecipeGenerator();
@@ -53,6 +57,13 @@ public class RecipeGenerator extends GUI {
         return recipes.getTags();
     }
 
+    /**
+     * Recursively searches the trie for the tag given.
+     * @param tag   Tag to search for
+     * @param currentPos    Current position down the tree
+     * @param currentNode   Currentl node in the tree
+     * @return  a Hashset of matching tags, null if none were found
+     */
     private HashSet<String> searchTrie(String tag, int currentPos, TagTrieNode currentNode) {
         char c = tag.charAt(currentPos);
 

@@ -3,8 +3,6 @@ import recipeInfo.Recipe;
 import recipeInfo.recipeContents.*;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -16,11 +14,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
+ * Build the GUI in Java Swing
  * @author Keely Haskett
  */
 public abstract class GUI {
-
-
 
 	protected abstract RecipeBook getRecipes();
 	protected abstract void saveRecipe(Recipe r);
@@ -58,15 +55,14 @@ public abstract class GUI {
 
 	private JFrame startWindow;
 	private JFrame mainWindow;
-	private JFrame generationWindow;
 	private JFrame recipeFormWindow;
 
 	volatile Step[] stepsCollection;
 	volatile Ingredient[] ingredientsCollection;
-	JList<String> recipes;
 	volatile String[] tagsCollection;
 	volatile String[] generatedRecipesCollection;
 
+	JList<String> recipes;
 
 	public GUI() {
 		buildStartWindow();
@@ -98,15 +94,14 @@ public abstract class GUI {
 		title.setForeground(primaryTextCol);
 		title.setHorizontalAlignment(SwingConstants.CENTER); // makes sure the title is always centered on the form
 
-
 		startWindow = new JFrame("Recipe Generator");
-
 
 		startWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //makes the instance finish when GUI is closed
 		startWindow.setLayout(new GridBagLayout());
 		startWindow.getContentPane().setBackground(bgCol);
 		startWindow.setPreferredSize(startWindowMinimumSize); //makes sure the frame stays at a nice viewable size.
 
+		//TODO: overhaul with Box Layout
 		GridBagConstraints constraints = new GridBagConstraints();
 
 		//add the title to the frame
@@ -134,8 +129,6 @@ public abstract class GUI {
 		constraints.gridy = 2;
 		startWindow.add(quit, constraints);
 
-
-		//startWindow.setContentPane(mainPanel);
 		startWindow.pack(); //makes all frame contents at or above their preferred size
 		startWindow.setLocationRelativeTo(null); //centers the window on the screen
 		startWindow.setVisible(true); //so we can see the gui
@@ -143,17 +136,19 @@ public abstract class GUI {
 
 	/**
 	 * The main window hosts majority of the functionality of the program.
-	 * It includes 2 panels, the first of which containing 4 buttons:
+	 * It includes 2 panels, the first of which containing 6 buttons:
 	 * A load button which allows the user to select a preformed recipe file, which the parser will process and
 	 * create a recipe object based off, if the file is in proper format.
+	 * A load folder button which does the above, but for every file in the 'Recipes' folder.
 	 * A create button, which allows the user to build a recipe file with information in a prebuilt form, which
 	 * will both create a recipe, and also produce a formatted recipe file for future use.
 	 * A generate button, which will open a window to allow the user to select their recipe generation options, and
-	 * then the program will give a set of recipes (and a shopping list eventually) based on the user's specifications.
+	 * then the program will give a set of recipes and a shopping list, based on the user's specifications.
 	 * A quit button which exits the program.
 	 * <p>
 	 * The second panel features a list of recipes, and will eventually allow the user to remove any recipes from the
-	 * recipe book that they do not want to include.
+	 * recipe book that they do not want to include. The user can select a recipe, to open in a full view using the open
+	 * recipe bottom below.
 	 */
 	private void buildMainWindow() {
 		mainWindow = new JFrame("Recipe Generator");
@@ -189,7 +184,7 @@ public abstract class GUI {
 		quit.setFont(mainWindowButtonFont);
 		quit.setToolTipText("Close program.");
 
-
+		//TODO: overhaul with Box Layout
 		buttonPanel.setLayout(new GridBagLayout());
 		GridBagConstraints constraints = new GridBagConstraints();
 
@@ -214,7 +209,6 @@ public abstract class GUI {
 		constraints.gridy = 4;
 		constraints.insets = buttonPanelQuitInsets;
 		buttonPanel.add(quit, constraints);
-
 
 		JPanel recipePanel = new JPanel();
 		recipePanel.setLayout(new BorderLayout());
@@ -245,6 +239,7 @@ public abstract class GUI {
 		mainWindow.setLocationRelativeTo(null); //centers the window on the screen
 		mainWindow.setVisible(true); //so we can see the gui
 
+		//ACTION LISTENERS
 		loadFile.addActionListener(e -> {
 			fileChooser.setCurrentDirectory(new File("./Recipes/"));
 			fileChooser.setDialogTitle("Select recipe file.");
@@ -282,40 +277,6 @@ public abstract class GUI {
 			}
 		});
 
-	}
-
-	private void loadRecipe(File f) {
-		try {
-			Recipe r = new RecipeParser().parseRecipeFromFile(f);
-			if (getRecipes().checkForDuplicate(r)) { return; }
-			saveRecipe(r);
-			loadTags(r.getTags());
-			refreshRecipeList();
-			recipes.setSelectedIndex(getRecipes().namesToArray().length - 1);
-		} catch (FileNotFoundException fileNotFoundException) {
-			JOptionPane fileNotFound = new JOptionPane();
-			fileNotFound.setOptionType(JOptionPane.DEFAULT_OPTION);
-			fileNotFound.setMessage("The file selected was not found. Please try again!");
-			JDialog fileNotFoundDialog = fileNotFound.createDialog("File Not Found");
-			fileNotFoundDialog.pack();
-			fileNotFoundDialog.setVisible(true);
-			int dialogChoice = (Integer) fileNotFound.getValue();
-			if (dialogChoice == JOptionPane.OK_OPTION) {
-				fileNotFoundDialog.setVisible(false);
-			}
-		} catch (Throwable t) {
-			t.printStackTrace();
-			JOptionPane parseError = new JOptionPane();
-			parseError.setOptionType(JOptionPane.DEFAULT_OPTION);
-			parseError.setMessage("There was an error while processing your file..! \n" + t.getMessage());
-			JDialog parseErrorDialog = parseError.createDialog("Recipe Parse Error");
-			parseErrorDialog.pack();
-			parseErrorDialog.setVisible(true);
-			int dialogChoice = (Integer) parseError.getValue();
-			if (dialogChoice == JOptionPane.OK_OPTION) {
-				parseErrorDialog.setVisible(false);
-			}
-		}
 	}
 
 	/**
@@ -360,10 +321,11 @@ public abstract class GUI {
 	}
 
 	/**
-	 *  Builds the window where user can randomly get recipes from the registered ones based on specifications.
+	 *  Builds the window where user can randomly get recipes from the registered ones based on specifications, and
+	 *  perform actions with those recipes.
 	 */
 	private void buildGeneratedRecipesWindow() {
-		generationWindow = new JFrame("Pick your generation options");
+		JFrame generationWindow = new JFrame("Pick your generation options");
 
 		JPanel generationOptions = new JPanel();
 		generationOptions.setLayout(new BoxLayout(generationOptions, BoxLayout.X_AXIS));
@@ -488,11 +450,9 @@ public abstract class GUI {
 		generationWindow.pack();
 		generationWindow.setVisible(true);
 
+		//Listeners
 		tagsList.addListSelectionListener(e -> {
-			if (tagsList.getSelectedIndex() == 0) {
-				tagsList.clearSelection();
-			}
-
+			if (tagsList.getSelectedIndex() == 0) { tagsList.clearSelection(); }
 		});
 
 		generateButton.addActionListener( e -> {
@@ -533,9 +493,7 @@ public abstract class GUI {
 		});
 
 		viewButton.addActionListener(e -> {
-			if (generatedRecipesList.getSelectedIndex() != -1) {
-				buildRecipeDisplayWindow(getRecipes().getRecipeByName(generatedRecipesList.getSelectedValue()));
-			}
+			if (generatedRecipesList.getSelectedIndex() != -1) { buildRecipeDisplayWindow(getRecipes().getRecipeByName(generatedRecipesList.getSelectedValue())); }
 		});
 
 		removeButton.addActionListener(e -> {
@@ -547,15 +505,12 @@ public abstract class GUI {
 				generatedRecipesList.setListData(generatedRecipesCollection);
 			}
 		});
-
-		shoppingListButton.addActionListener(e -> {
-			buildShoppingListWindow(Arrays.stream(generatedRecipesCollection).filter(Objects::nonNull).map(s -> getRecipes().getRecipeByName(s)).collect(Collectors.toList()));
-		});
+		shoppingListButton.addActionListener(e -> buildShoppingListWindow(Arrays.stream(generatedRecipesCollection).filter(Objects::nonNull).map(s -> GUI.this.getRecipes().getRecipeByName(s)).collect(Collectors.toList())));
 	}
 
 
 	/**
-	 * Build window to display a recipe.
+	 * Build window to display the shopping list.
 	 */
 	private void buildShoppingListWindow(List<Recipe> recipes) {
 		HashMap<String, List<Measurement>> ingredients = new HashMap<>();
@@ -709,9 +664,7 @@ public abstract class GUI {
 		measurementInput.setToolTipText("Choose the unit of measurement");
 		measurementInput.setMaximumSize(new Dimension(40, 40));
 		measurementInput.addItem(null);
-		for (Measurement.UnitsOfMeasurement e : Measurement.UnitsOfMeasurement.values()) {
-			measurementInput.addItem(Measurement.convertToString(e));
-		}
+		for (Measurement.UnitsOfMeasurement e : Measurement.UnitsOfMeasurement.values()) { measurementInput.addItem(Measurement.convertToString(e)); }
 		JTextField ingredientInput = new JTextField("");
 		setFormComponentDetails(ingredientInput);
 		ingredientInput.setToolTipText("Name the ingredient");
@@ -897,6 +850,8 @@ public abstract class GUI {
 			openInfoDialog.setVisible(false);
 		}
 
+		//Listeners
+
 		addIngredientButton.addActionListener(e -> {
 			if (!ingredientInput.getText().equals("") && !amountInput.getText().equals("") && amountInput.getText().matches("\\d+(\\.\\d+)*") && measurementInput.getSelectedItem() != null) {
 				if (ingredientsCollection[ingredientsCollection.length - 1] != null) {
@@ -1070,6 +1025,7 @@ public abstract class GUI {
 			}
 
 		});
+
 		doneButton.addActionListener(e -> {
 			if (((int) prepTimeHourInput.getValue() > 0 || (int) prepTimeMinuteInput.getValue() > 0) && ((int) cookTimeHourInput.getValue() > 0 || (int) cookTimeMinuteInput.getValue() > 0)
 					&& ingredientsCollection[0] != null && stepsCollection[0] != null && !nameInput.getText().equals("")) {
@@ -1120,22 +1076,72 @@ public abstract class GUI {
 		});
 	}
 
+	/**
+	 * Add styling for form components.
+	 * @param component     Component to style
+	 * @return  Component passed in
+	 */
 	private JComponent setFormComponentDetails(JComponent component) {
 		component.setFont(recipeFormWindowComponentFont);
 		component.setForeground(primaryTextCol);
 		return component;
 	}
 
+	/**
+	 * Add styling for form labels.
+	 * @param label     Label to style
+	 * @return  Label passed in
+	 */
 	private JLabel setFormLabelDetails(JLabel label) {
 		label.setFont(recipeFormWindowLabelFont);
 		label.setForeground(primaryTextCol);
 		return label;
 	}
 
+	/**
+	 * Re-add the list data to recipes to refresh it
+	 */
 	private void refreshRecipeList() {
 		recipes.setListData(getRecipes().namesToArray());
 	}
 
+	/**
+	 * Helper Method to parse file and handle results.
+	 * @param f File to parse from
+	 */
+	private void loadRecipe(File f) {
+		try {
+			Recipe r = new RecipeParser().parseRecipeFromFile(f);
+			if (getRecipes().checkForDuplicate(r)) { return; }
+			saveRecipe(r);
+			loadTags(r.getTags());
+			refreshRecipeList();
+			recipes.setSelectedIndex(getRecipes().namesToArray().length - 1);
+		} catch (FileNotFoundException fileNotFoundException) {
+			JOptionPane fileNotFound = new JOptionPane();
+			fileNotFound.setOptionType(JOptionPane.DEFAULT_OPTION);
+			fileNotFound.setMessage("The file selected was not found. Please try again!");
+			JDialog fileNotFoundDialog = fileNotFound.createDialog("File Not Found");
+			fileNotFoundDialog.pack();
+			fileNotFoundDialog.setVisible(true);
+			int dialogChoice = (Integer) fileNotFound.getValue();
+			if (dialogChoice == JOptionPane.OK_OPTION) {
+				fileNotFoundDialog.setVisible(false);
+			}
+		} catch (Throwable t) {
+			t.printStackTrace();
+			JOptionPane parseError = new JOptionPane();
+			parseError.setOptionType(JOptionPane.DEFAULT_OPTION);
+			parseError.setMessage("There was an error while processing your file..! \n" + t.getMessage());
+			JDialog parseErrorDialog = parseError.createDialog("Recipe Parse Error");
+			parseErrorDialog.pack();
+			parseErrorDialog.setVisible(true);
+			int dialogChoice = (Integer) parseError.getValue();
+			if (dialogChoice == JOptionPane.OK_OPTION) {
+				parseErrorDialog.setVisible(false);
+			}
+		}
+	}
 
 	/**
 	 * Button innerclass allows more control over the appearance and actions of the buttons in the GUI,

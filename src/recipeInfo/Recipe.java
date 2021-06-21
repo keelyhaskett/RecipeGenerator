@@ -2,22 +2,24 @@ package recipeInfo;
 
 import recipeInfo.recipeContents.InfoBlock;
 import recipeInfo.recipeContents.Ingredient;
-import recipeInfo.recipeContents.Measurement;
 import recipeInfo.recipeContents.Method;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Objects;
 
+/**
+ * Recipe object, containing all elements of a recipe.
+ * Getters for some fields, master file formatter for outward parsing.
+ */
 public class Recipe {
 
-    private ArrayList<Ingredient> ingredients;
-    private Method method;
-    private String name;
-    private InfoBlock info;
-    private ArrayList<String> tags;
-    private Duration totTime;
+    private final ArrayList<Ingredient> ingredients;
+    private final Method method;
+    private final String name;
+    private final InfoBlock info;
+    private final ArrayList<String> tags;
+    private final Duration totTime;
 
     public Recipe(ArrayList<Ingredient> i, Method m, String n, InfoBlock info, ArrayList<String> t) {
         this.ingredients = new ArrayList<>(i);
@@ -36,14 +38,18 @@ public class Recipe {
 
     public String getName() { return name; }
 
+    public ArrayList<Ingredient> getIngredients() { return ingredients; }
+
+    /**
+     * Format the recipe into a parsable format.
+     * @return formatted recipe string
+     */
     public String toFileFormat() {
         StringBuilder b =  new StringBuilder();
         b.append("( ").append(name).append(" ) ");
         b.append(info.toFileFormat());
         b.append(" <start> ");
-        for (Ingredient i : ingredients) {
-            b.append(i.toFileFormat());
-        }
+        for (Ingredient i : ingredients) { b.append(i.toFileFormat()); }
         b.append("<stop> ");
         b.append(method.toFileFormat());
         b.append(" <tagOpen> ");
@@ -60,22 +66,22 @@ public class Recipe {
         b.append("Serves: ").append(info.getServes()).append("\n");
         b.append("Prep Time: ").append(((int) info.getPrepTime().toMinutes()) / 60).append(":");
         long minutes = info.getPrepTime().toMinutes() % 60;
-        if (minutes < 10) {b.append(0);}
+        if (minutes < 10) {b.append(0);}//if the number isn't 2 digits, add a second
         b.append(minutes);
         b.append("   Cook Time: ").append(((int) info.getCookTime().toMinutes()) / 60).append(":");
         minutes = info.getCookTime().toMinutes() % 60;
-        if (minutes < 10) {b.append(0);}
+        if (minutes < 10) {b.append(0);}//if the number isn't 2 digits, add a second
         b.append(minutes);
         b.append("   Total Time: ").append(((int) totTime.toMinutes()) / 60).append(":");
         minutes = totTime.toMinutes() % 60;
-        if (minutes < 10) {b.append(0);}
+        if (minutes < 10) {b.append(0);}//if the number isn't 2 digits, add a second
         b.append(minutes).append("\n\n");
         b.append("Ingredients: \n");
         ingredients.forEach(i -> b.append(i.toString()));
         b.append("\n").append(method.toString());
         b.append("\n").append("Tags: ");
-        tags.forEach(s ->b.append(s).append(", "));
-        b.deleteCharAt(b.length()-2);
+        tags.forEach(s ->b.append(s).append(", "));//add each tag and a comma between each tag
+        b.deleteCharAt(b.length()-2);//delete redundant extra comma
 
 
         return b.toString();
@@ -98,6 +104,4 @@ public class Recipe {
     public int hashCode() {
         return Objects.hash(ingredients, method, name, info);
     }
-
-    public ArrayList<Ingredient> getIngredients() { return ingredients; }
 }
