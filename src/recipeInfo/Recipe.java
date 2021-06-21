@@ -46,7 +46,7 @@ public class Recipe {
         }
         b.append("<stop> ");
         b.append(method.toFileFormat());
-        b.append("\n").append(" <tagOpen ");
+        b.append(" <tagOpen> ");
         tags.forEach(s -> b.append(" ( ").append(s).append(" ) "));
         b.append(" <tagClose>");
 
@@ -98,4 +98,6 @@ public class Recipe {
     public int hashCode() {
         return Objects.hash(ingredients, method, name, info);
     }
+
+    public ArrayList<Ingredient> getIngredients() { return ingredients; }
 }

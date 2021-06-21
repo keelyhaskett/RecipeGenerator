@@ -2,6 +2,11 @@ package recipeInfo.recipeContents;
 
 import java.time.Duration;
 
+/**
+ * Infoblock stores the numeric initial info of a recipe (times and serves), primarily for the purpose of parsing
+ * ease.
+ * Contains a getter for each field, and a fileFormat String method for parsing back to a file.
+ */
 public class InfoBlock {
 
 	private final Duration prepTime;
@@ -26,6 +31,10 @@ public class InfoBlock {
 		return serves;
 	}
 
+	/**
+	 * Format information into a parsable state.
+	 * @return a formatted string of info.
+	 */
 	public String toFileFormat() {
 		return serves + " , " +
 				((int) prepTime.toMinutes()) / 60 + " : " + prepTime.toMinutes() % 60 + " , " +

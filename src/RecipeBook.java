@@ -24,6 +24,13 @@ public class RecipeBook {
         recipes.add(r);
     }
 
+    public Boolean checkForDuplicate(Recipe r) {
+        for (Recipe recipe : recipes) {
+            if (recipe.getName().equals(r.getName())) { return true; }
+        }
+        return false;
+    }
+
     public boolean checkAndAddTag(String tag) {
         if (knownTags.contains(tag.toUpperCase())) { return false; }
         knownTags.add(tag.toUpperCase());
@@ -57,11 +64,18 @@ public class RecipeBook {
         return recipes.get(index);
     }
 
+    public Recipe getRecipeByName(String r) {
+        for (Recipe recipe : recipes) {
+            if (recipe.getName().equals(r)) { return recipe; }
+        }
+        return null;
+    }
+
     public String getRecipeWhere (int numServes, Duration maxTime, List<String> tags) {
         List<Recipe> recipeCandidates = getRecipesWhere(numServes, maxTime, tags);
         if (recipeCandidates.isEmpty()) { return null; }
         if (recipeCandidates.size() == 1) { return recipeCandidates.get(0).getName(); }
-        return recipeCandidates.get((int)Math.round(Math.random() * recipeCandidates.size() - 1)).getName();
+        return recipeCandidates.get((int)Math.round(Math.random() * (recipeCandidates.size() - 1))).getName();
     }
 
 

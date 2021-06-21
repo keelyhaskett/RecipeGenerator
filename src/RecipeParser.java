@@ -7,7 +7,6 @@ import java.io.PrintWriter;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Scanner;
-import java.util.regex.Pattern;
 
 public class RecipeParser {
 
@@ -72,7 +71,7 @@ public class RecipeParser {
 		return m;
 	}
 
-	private Instruction parseStep(Scanner scan) {
+	private Step parseStep(Scanner scan) {
 		int stepNum = scan.nextInt();
 		StringBuilder step = new StringBuilder();
 		while (true) {
@@ -82,7 +81,7 @@ public class RecipeParser {
 			step.append(token);
 		}
 
-		return new Instruction(step.toString(), stepNum);
+		return new Step(step.toString(), stepNum);
 	}
 
 	private ArrayList<Ingredient> parseIngredientBlock(Scanner scanner) {

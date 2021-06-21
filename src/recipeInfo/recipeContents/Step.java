@@ -1,12 +1,20 @@
 package recipeInfo.recipeContents;
 
-public class Instruction {
+/**
+ * Step contains method number and step description for a method step.
+ * Ability to change step number (for creation mistakes) and format for outward parsing.
+ */
+public class Step {
     String step;
     int stepNumber;
 
-    public Instruction(String step, int num) {
+    public Step(String step, int num) {
         this.step = step;
         this.stepNumber = num;
+    }
+
+    public void setStepNumber(int stepNumber) {
+        this.stepNumber = stepNumber;
     }
 
     @Override
@@ -28,6 +36,10 @@ public class Instruction {
         return b.toString();
     }
 
+    /**
+     * Format step to a parsable format.
+     * @return a formatted String
+     */
     public String toFileFormat() {
         return "# " + stepNumber + " " + step + " #  ";
     }

@@ -5,8 +5,6 @@ import recipeInfo.recipeContents.*;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -25,7 +23,10 @@ public abstract class GUI {
 
 
 	protected abstract RecipeBook getRecipes();
-
+	protected abstract void saveRecipe(Recipe r);
+	protected abstract void loadTags(ArrayList<String> tags);
+	protected abstract HashSet<String> getSuggestedTags(String tag);
+	protected abstract HashSet<String> getAllTags();
 
 	private static final int START_WINDOW_BUTTON_TEXT_SIZE = 30;
 	private static final int START_WINDOW_TITLE_TEXT_SIZE = 60;
@@ -60,7 +61,7 @@ public abstract class GUI {
 	private JFrame generationWindow;
 	private JFrame recipeFormWindow;
 
-	volatile Instruction[] stepsCollection;
+	volatile Step[] stepsCollection;
 	volatile Ingredient[] ingredientsCollection;
 	JList<String> recipes;
 	volatile String[] tagsCollection;
@@ -83,23 +84,13 @@ public abstract class GUI {
 		Button start = new Button("Start");
 		start.setPreferredSize(startWindowButtonSize);
 		start.setFont(startWindowButtonFont);
-		start.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				buildMainWindow();
-			}
-		});
+		start.addActionListener(e -> buildMainWindow());
 
 		//create and format the quit button
 		Button quit = new Button("Quit");
 		quit.setPreferredSize(startWindowButtonSize);
 		quit.setFont(startWindowButtonFont);
-		quit.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				System.exit(0);
-			}
-		});
+		quit.addActionListener(e -> System.exit(0));
 
 		//create and format the title text
 		JLabel title = new JLabel("Recipe Generator");
@@ -262,36 +253,7 @@ public abstract class GUI {
 			if (fileChooser.showOpenDialog(mainWindow) == JFileChooser.APPROVE_OPTION) { //if the user chose an
 				//acceptable file
 				File file = fileChooser.getSelectedFile();
-				try {
-					Recipe r = new RecipeParser().parseRecipeFromFile(file);
-					saveRecipe(r);
-					loadTags(r.getTags());
-					refreshRecipeList();
-					recipes.setSelectedIndex(getRecipes().namesToArray().length - 1);
-				} catch (FileNotFoundException fileNotFoundException) {
-					JOptionPane fileNotFound = new JOptionPane();
-					fileNotFound.setOptionType(JOptionPane.DEFAULT_OPTION);
-					fileNotFound.setMessage("The file selected was not found. Please try again!");
-					JDialog fileNotFoundDialog = fileNotFound.createDialog("File Not Found");
-					fileNotFoundDialog.pack();
-					fileNotFoundDialog.setVisible(true);
-					int dialogChoice = (Integer) fileNotFound.getValue();
-					if (dialogChoice == JOptionPane.OK_OPTION) {
-						fileNotFoundDialog.setVisible(false);
-					}
-				} catch (Throwable t) {
-					t.printStackTrace();
-					JOptionPane parseError = new JOptionPane();
-					parseError.setOptionType(JOptionPane.DEFAULT_OPTION);
-					parseError.setMessage("There was an error while processing your file..! \n" + t.getMessage());
-					JDialog parseErrorDialog = parseError.createDialog("Recipe Parse Error");
-					parseErrorDialog.pack();
-					parseErrorDialog.setVisible(true);
-					int dialogChoice = (Integer) parseError.getValue();
-					if (dialogChoice == JOptionPane.OK_OPTION) {
-						parseErrorDialog.setVisible(false);
-					}
-				}
+				loadRecipe(file);
 			}
 		});
 
@@ -299,37 +261,9 @@ public abstract class GUI {
 			File folder =  new File("./Recipes/");
 			File[] listOfFiles = folder.listFiles();
 
+			if (listOfFiles == null) { return; }
 			for (File f : listOfFiles) {
-				try {
-					Recipe r = new RecipeParser().parseRecipeFromFile(f);
-					saveRecipe(r);
-					loadTags(r.getTags());
-					refreshRecipeList();
-					recipes.setSelectedIndex(getRecipes().namesToArray().length - 1);
-				} catch (FileNotFoundException fileNotFoundException) {
-					JOptionPane fileNotFound = new JOptionPane();
-					fileNotFound.setOptionType(JOptionPane.DEFAULT_OPTION);
-					fileNotFound.setMessage("The file selected was not found. Please try again!");
-					JDialog fileNotFoundDialog = fileNotFound.createDialog("File Not Found");
-					fileNotFoundDialog.pack();
-					fileNotFoundDialog.setVisible(true);
-					int dialogChoice = (Integer) fileNotFound.getValue();
-					if (dialogChoice == JOptionPane.OK_OPTION) {
-						fileNotFoundDialog.setVisible(false);
-					}
-				} catch (Throwable t) {
-					t.printStackTrace();
-					JOptionPane parseError = new JOptionPane();
-					parseError.setOptionType(JOptionPane.DEFAULT_OPTION);
-					parseError.setMessage("There was an error while processing your file..! \n" + t.getMessage());
-					JDialog parseErrorDialog = parseError.createDialog("Recipe Parse Error");
-					parseErrorDialog.pack();
-					parseErrorDialog.setVisible(true);
-					int dialogChoice = (Integer) parseError.getValue();
-					if (dialogChoice == JOptionPane.OK_OPTION) {
-						parseErrorDialog.setVisible(false);
-					}
-				}
+				loadRecipe(f);
 			}
 		});
 
@@ -350,6 +284,40 @@ public abstract class GUI {
 
 	}
 
+	private void loadRecipe(File f) {
+		try {
+			Recipe r = new RecipeParser().parseRecipeFromFile(f);
+			if (getRecipes().checkForDuplicate(r)) { return; }
+			saveRecipe(r);
+			loadTags(r.getTags());
+			refreshRecipeList();
+			recipes.setSelectedIndex(getRecipes().namesToArray().length - 1);
+		} catch (FileNotFoundException fileNotFoundException) {
+			JOptionPane fileNotFound = new JOptionPane();
+			fileNotFound.setOptionType(JOptionPane.DEFAULT_OPTION);
+			fileNotFound.setMessage("The file selected was not found. Please try again!");
+			JDialog fileNotFoundDialog = fileNotFound.createDialog("File Not Found");
+			fileNotFoundDialog.pack();
+			fileNotFoundDialog.setVisible(true);
+			int dialogChoice = (Integer) fileNotFound.getValue();
+			if (dialogChoice == JOptionPane.OK_OPTION) {
+				fileNotFoundDialog.setVisible(false);
+			}
+		} catch (Throwable t) {
+			t.printStackTrace();
+			JOptionPane parseError = new JOptionPane();
+			parseError.setOptionType(JOptionPane.DEFAULT_OPTION);
+			parseError.setMessage("There was an error while processing your file..! \n" + t.getMessage());
+			JDialog parseErrorDialog = parseError.createDialog("Recipe Parse Error");
+			parseErrorDialog.pack();
+			parseErrorDialog.setVisible(true);
+			int dialogChoice = (Integer) parseError.getValue();
+			if (dialogChoice == JOptionPane.OK_OPTION) {
+				parseErrorDialog.setVisible(false);
+			}
+		}
+	}
+
 	/**
 	 * Build window to display a recipe.
 	 * @param r Recipe to display.
@@ -359,7 +327,6 @@ public abstract class GUI {
 
 		JTextArea recipe = new JTextArea();
 		recipe.setEditable(false);
-		recipe.setLineWrap(true);
 		setFormComponentDetails(recipe);
 		recipe.append(r.toString());
 		recipe.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
@@ -393,7 +360,7 @@ public abstract class GUI {
 	}
 
 	/**
-	 *
+	 *  Builds the window where user can randomly get recipes from the registered ones based on specifications.
 	 */
 	private void buildGeneratedRecipesWindow() {
 		generationWindow = new JFrame("Pick your generation options");
@@ -404,8 +371,14 @@ public abstract class GUI {
 		JPanel specificOptions = new JPanel();
 		specificOptions.setLayout(new BoxLayout(specificOptions, BoxLayout.Y_AXIS));
 		JSpinner numServesSpinner = new JSpinner();
-		numServesSpinner.setModel(new SpinnerNumberModel(1, 0, 10, 1));
+		numServesSpinner.setMaximumSize(new Dimension(50, 20));
+		numServesSpinner.setModel(new SpinnerNumberModel(0, 0, 10, 1));
 		setFormComponentDetails(numServesSpinner);
+		JPanel servesPadding = new JPanel();
+		servesPadding.setLayout(new BoxLayout(servesPadding, BoxLayout.X_AXIS));
+		servesPadding.add(Box.createHorizontalGlue());
+		servesPadding.add(numServesSpinner);
+		servesPadding.add(Box.createHorizontalGlue());
 
 		JPanel timeOptions = new JPanel();
 		timeOptions.setLayout(new BoxLayout(timeOptions, BoxLayout.X_AXIS));
@@ -428,7 +401,7 @@ public abstract class GUI {
 
 		specificOptions.add(setFormLabelDetails(new JLabel("Number of Serves (0 for any)")));
 		specificOptions.add(Box.createRigidArea(new Dimension(5,15)));
-		specificOptions.add(numServesSpinner);
+		specificOptions.add(servesPadding);
 		specificOptions.add(Box.createRigidArea(new Dimension(5,15)));
 		specificOptions.add(setFormLabelDetails(new JLabel("Max Recipe Time (0:0 for any)")));
 		specificOptions.add(Box.createRigidArea(new Dimension(5,15)));
@@ -470,6 +443,7 @@ public abstract class GUI {
 		generatedRecipesCollection = new String[5];
 		generatedRecipesList.setListData(generatedRecipesCollection);
 		JScrollPane generatedRecipesScroll = new JScrollPane(generatedRecipesList);
+		generatedRecipesScroll.setPreferredSize(new Dimension(100, 200));
 		listPadding.add(Box.createRigidArea(new Dimension(20, 5)));
 		listPadding.add(generatedRecipesScroll);
 		listPadding.add(Box.createRigidArea(new Dimension(20, 5)));
@@ -560,7 +534,7 @@ public abstract class GUI {
 
 		viewButton.addActionListener(e -> {
 			if (generatedRecipesList.getSelectedIndex() != -1) {
-				buildRecipeDisplayWindow(getRecipes().getRecipeAt(generatedRecipesList.getSelectedIndex()));
+				buildRecipeDisplayWindow(getRecipes().getRecipeByName(generatedRecipesList.getSelectedValue()));
 			}
 		});
 
@@ -570,12 +544,92 @@ public abstract class GUI {
 					generatedRecipesCollection[i] = generatedRecipesCollection[i+1];
 				}
 				generatedRecipesCollection[generatedRecipesCollection.length - 1] = null;
+				generatedRecipesList.setListData(generatedRecipesCollection);
 			}
 		});
 
 		shoppingListButton.addActionListener(e -> {
-			//TODO: implement shopping list with new window
+			buildShoppingListWindow(Arrays.stream(generatedRecipesCollection).filter(Objects::nonNull).map(s -> getRecipes().getRecipeByName(s)).collect(Collectors.toList()));
 		});
+	}
+
+
+	/**
+	 * Build window to display a recipe.
+	 */
+	private void buildShoppingListWindow(List<Recipe> recipes) {
+		HashMap<String, List<Measurement>> ingredients = new HashMap<>();
+
+		for (Recipe r : recipes) {
+			for (Ingredient i : r.getIngredients()) {
+				if (ingredients.containsKey(i.getIngredient().toLowerCase())) {
+					List<Measurement> measurements = ingredients.get(i.getIngredient().toLowerCase());
+					boolean likeMeasurementFound = false;
+					for (Measurement m : measurements) {
+						if (m.getUnit() == i.getMeasurement().getUnit()) {
+							m.addAmount(i.getMeasurement().getAmount());
+							likeMeasurementFound = true;
+							break;
+						}
+					}
+					if (!likeMeasurementFound) {
+						measurements.add(new Measurement(i.getMeasurement().getAmount(), i.getMeasurement().getUnit()));
+					}
+					ingredients.put(i.getIngredient().toLowerCase(), measurements);
+				}
+				else {
+					List<Measurement> ms = new ArrayList<>();
+					ms.add(new Measurement(i.getMeasurement().getAmount(), i.getMeasurement().getUnit()));
+					ingredients.put(i.getIngredient().toLowerCase(), ms);
+				}
+			}
+		}
+
+		JFrame shoppingListWindow = new JFrame("Recipe View");
+
+		JTextArea shoppingList = new JTextArea();
+		shoppingList.setEditable(false);
+		setFormComponentDetails(shoppingList);
+		shoppingList.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+
+		StringBuilder b = new StringBuilder();
+		b.append("Ingredients needed for recipes: \n");
+		for (String s : ingredients.keySet()) {
+			b.append(s).append(" (");
+			for (Measurement m : ingredients.get(s)) {
+				if (b.charAt(b.length()-1) != '(') { b.append(", "); }
+				b.append(m.toString());
+			}
+			b.append(")\n");
+		}
+		shoppingList.append(b.toString());
+
+		JScrollPane shoppingListScroll = new JScrollPane(shoppingList);
+		shoppingListScroll.setMaximumSize(new Dimension(1000, 800));
+		shoppingListScroll.createVerticalScrollBar();
+		shoppingListScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		shoppingListScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		shoppingListScroll.setBorder(BorderFactory.createLineBorder(pressedButCol, 10));
+
+		JPanel formattingPanel = new JPanel();
+		formattingPanel.setBackground(bgCol);
+		formattingPanel.setLayout(new BoxLayout(formattingPanel, BoxLayout.X_AXIS));
+		formattingPanel.add(Box.createRigidArea(new Dimension(20, 10)));
+		formattingPanel.add(shoppingListScroll);
+		formattingPanel.add(Box.createRigidArea(new Dimension(20, 10)));
+
+		JPanel mainPanel = new JPanel();
+		mainPanel.setBackground(bgCol);
+		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+		mainPanel.add(Box.createRigidArea(new Dimension(15, 20)));
+		mainPanel.add(formattingPanel);
+		mainPanel.add(Box.createRigidArea(new Dimension(15, 20)));
+		shoppingListWindow.add(mainPanel);
+		shoppingListWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		shoppingListWindow.setMaximumSize(new Dimension((int)(Toolkit.getDefaultToolkit().getScreenSize().width * 0.9), (int)(Toolkit.getDefaultToolkit().getScreenSize().height * 0.9)));
+		shoppingListWindow.pack();
+		shoppingListWindow.setLocationRelativeTo(null);
+		shoppingListWindow.setVisible(true);
 	}
 
 
@@ -664,7 +718,7 @@ public abstract class GUI {
 		ingredientInput.setColumns(10);
 		ingredientInput.setMaximumSize(new Dimension(150, 40));
 		Button addIngredientButton = new Button("Add!");
-		setFormComponentDetails(addIngredientButton);
+		Button deleteIngredientButton = new Button("Delete");
 		ingredientsInputRow.setLayout(new BoxLayout(ingredientsInputRow, BoxLayout.X_AXIS));
 		ingredientsInputRow.add(Box.createHorizontalGlue());
 		ingredientsInputRow.add(Box.createRigidArea(new Dimension(20, 0)));
@@ -675,6 +729,8 @@ public abstract class GUI {
 		ingredientsInputRow.add(setFormComponentDetails(ingredientInput));
 		ingredientsInputRow.add(Box.createRigidArea(new Dimension(20, 0)));
 		ingredientsInputRow.add(setFormComponentDetails(addIngredientButton));
+		ingredientsInputRow.add(Box.createRigidArea(new Dimension(20, 0)));
+		ingredientsInputRow.add(setFormComponentDetails(deleteIngredientButton));
 		ingredientsInputRow.add(Box.createRigidArea(new Dimension(30, 0)));
 		ingredientsInputRow.add(Box.createHorizontalGlue());
 		JPanel scrollIncludeIngredients = new JPanel();
@@ -708,15 +764,19 @@ public abstract class GUI {
 		stepInput.setColumns(35);
 		Button addStepButton = new Button("Add!");
 		setFormComponentDetails(addStepButton);
+		Button deleteStepButton = new Button("Delete");
+		setFormComponentDetails(deleteStepButton);
 		JPanel stepInputRow = new JPanel();
 		stepInputRow.add(stepInput);
 		stepInputRow.add(addStepButton);
+		stepInputRow.add(Box.createRigidArea(new Dimension(20, 0)));
+		stepInputRow.add(deleteStepButton);
 
 		JPanel scrollIncludeMethod = new JPanel();
 		scrollIncludeMethod.setLayout(new BoxLayout(scrollIncludeMethod, BoxLayout.X_AXIS));
 
-		stepsCollection = new Instruction[10];
-		JList<Instruction> stepsJList = new JList<>(stepsCollection);
+		stepsCollection = new Step[10];
+		JList<Step> stepsJList = new JList<>(stepsCollection);
 		setFormComponentDetails(stepsJList);
 		JScrollPane methodScroll = new JScrollPane(stepsJList);
 		setFormComponentDetails(methodScroll);
@@ -736,11 +796,20 @@ public abstract class GUI {
 		method.add(scrollIncludeMethod);
 
 		JPanel tags = new JPanel();
+
+		JPanel tagsCombo = new JPanel();
+		tagsCombo.setLayout(new BoxLayout(tagsCombo, BoxLayout.Y_AXIS));
 		JComboBox<String> tagsComboBox = new JComboBox<>();
-		tagsComboBox.setMaximumSize(new Dimension(60, 30));
+		tagsComboBox.setPreferredSize(new Dimension(150, 30));
+		tagsComboBox.setMaximumSize(new Dimension(150, 30));
 		tagsComboBox.setEditable(true);
 		setFormComponentDetails(tagsComboBox);
 		JTextField tagEditor = (JTextField) tagsComboBox.getEditor().getEditorComponent();
+
+		tagsCombo.add(setFormLabelDetails(new JLabel("Recipe Tags")));
+		tagsCombo.add(Box.createRigidArea(new Dimension(5, 10)));
+		tagsCombo.add(tagsComboBox);
+		tagsCombo.add(Box.createVerticalGlue());
 
 		Button tagButton = new Button("Add!");
 		setFormComponentDetails(tagButton);
@@ -767,7 +836,7 @@ public abstract class GUI {
 
 		tags.setLayout(new BoxLayout(tags, BoxLayout.X_AXIS));
 		tags.add(Box.createHorizontalGlue());
-		tags.add(tagsComboBox);
+		tags.add(tagsCombo);
 		tags.add(Box.createRigidArea(new Dimension(20,10)));
 		tags.add(rightTagsPanel);
 		tags.add(Box.createRigidArea(new Dimension(20,10)));
@@ -874,12 +943,22 @@ public abstract class GUI {
 			}
 		});
 
+		deleteIngredientButton.addActionListener(e -> {
+			if (ingredientsJList.getSelectedIndex() != -1) {
+				for (int i = ingredientsJList.getSelectedIndex(); i < ingredientsCollection.length - 1; i++) {
+					ingredientsCollection[i] = ingredientsCollection[i+1];
+				}
+				ingredientsCollection[ingredientsCollection.length - 1] = null;
+				ingredientsJList.setListData(ingredientsCollection);
+			}
+		});
+
 		addStepButton.addActionListener(e -> {
 			if (!stepInput.getText().equals("")) {
 				if (!Character.isDigit(stepInput.getText().charAt(0))) {
 					if (stepsCollection[stepsCollection.length - 1] != null) {
 						//make list bigger
-						Instruction[] temp = new Instruction[stepsCollection.length + 5];
+						Step[] temp = new Step[stepsCollection.length + 5];
 						for (int i = 0; i < stepsCollection.length; i++) {
 							temp[i] = stepsCollection[i];
 						}
@@ -889,7 +968,7 @@ public abstract class GUI {
 						if (stepsCollection[i] != null) {
 							continue;
 						}
-						stepsCollection[i] = new Instruction(stepInput.getText(), i + 1);
+						stepsCollection[i] = new Step(stepInput.getText(), i + 1);
 						stepInput.setText("");
 						stepsJList.setListData(stepsCollection);
 						break;
@@ -917,6 +996,17 @@ public abstract class GUI {
 				if (choice == JOptionPane.OK_OPTION) {
 					dialog.setVisible(false);
 				}
+			}
+		});
+
+		deleteStepButton.addActionListener(e -> {
+			if (stepsJList.getSelectedIndex() != -1) {
+				for (int i = stepsJList.getSelectedIndex(); i < stepsCollection.length - 1; i++) {
+					stepsCollection[i] = stepsCollection[i+1];
+					stepsCollection[i].setStepNumber(i + 1);
+				}
+				stepsCollection[stepsCollection.length - 1] = null;
+				stepsJList.setListData(stepsCollection);
 			}
 		});
 
@@ -961,6 +1051,7 @@ public abstract class GUI {
 					tagsCollection[i] = tagsCollection[i+1];
 				}
 				tagsCollection[tagsCollection.length - 1] = null;
+				tagsJList.setListData(tagsCollection);
 			}
 		});
 
@@ -1045,14 +1136,6 @@ public abstract class GUI {
 		recipes.setListData(getRecipes().namesToArray());
 	}
 
-	protected abstract void saveRecipe(Recipe r);
-
-	protected abstract void loadTags(ArrayList<String> tags);
-
-	protected abstract HashSet<String> getSuggestedTags(String tag);
-
-	protected abstract HashSet<String> getAllTags();
-
 
 	/**
 	 * Button innerclass allows more control over the appearance and actions of the buttons in the GUI,
@@ -1070,22 +1153,19 @@ public abstract class GUI {
 			setFocusPainted(false); //turns off grey border around text on press
 			setText(text);
 
-			addChangeListener(new ChangeListener() {
-				@Override
-				public void stateChanged(ChangeEvent e) {
-					if (getModel().isPressed()) {
-						//adjust to pressed colouration
-						setForeground(hoverTextCol);
-						setBackground(pressedButCol);
-					} else if (getModel().isRollover()) {
-						//adjust to hover colouration
-						setForeground(hoverTextCol);
-						setBackground(hoverButCol);
-					} else {
-						//adjust to regular colouration
-						setForeground(primaryTextCol);
-						setBackground(primaryButCol);
-					}
+			addChangeListener(e -> {
+				if (getModel().isPressed()) {
+					//adjust to pressed colouration
+					setForeground(hoverTextCol);
+					setBackground(pressedButCol);
+				} else if (getModel().isRollover()) {
+					//adjust to hover colouration
+					setForeground(hoverTextCol);
+					setBackground(hoverButCol);
+				} else {
+					//adjust to regular colouration
+					setForeground(primaryTextCol);
+					setBackground(primaryButCol);
 				}
 			});
 		}
