@@ -11,10 +11,10 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.nio.file.Path;
-import java.sql.Time;
 import java.time.Duration;
 import java.util.*;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -22,12 +22,14 @@ import java.util.stream.Collectors;
  */
 public abstract class GUI {
 
+
+
 	protected abstract RecipeBook getRecipes();
 
 
 	private static final int START_WINDOW_BUTTON_TEXT_SIZE = 30;
 	private static final int START_WINDOW_TITLE_TEXT_SIZE = 60;
-	private static final int MAIN_WINDOW_BUTTON_TEXT_SIZE = 20;
+	private static final int MAIN_WINDOW_BUTTON_TEXT_SIZE = 16;
 	private static final int RECIPE_LIST_TEXT_SIZE = 15;
 	private static final int RECIPE_FORM_TEXT_SIZE = 15;
 	private static final int RECIPE_FORM_COMPONENT_TEXT_SIZE = 15;
@@ -39,8 +41,8 @@ public abstract class GUI {
 	private final Dimension recipeFormButtonSize = new Dimension(80, 50);
 	private final Insets buttonPanelInsets = new Insets(15, 0, 15, 0);
 	private final Insets buttonPanelQuitInsets = new Insets(recipeListPreferredSize.height -
-			((buttonPanelInsets.top + buttonPanelInsets.bottom) * 3 +
-					(mainWindowButtonSize.height * 4) - 30), 0, 30, 0);
+			((buttonPanelInsets.top + buttonPanelInsets.bottom) * 4 +
+					(mainWindowButtonSize.height * 5) - 30), 0, 30, 0);
 	private final Font startWindowButtonFont = new Font("Helvetica", Font.PLAIN, START_WINDOW_BUTTON_TEXT_SIZE);
 	private final Font mainWindowButtonFont = new Font("Helvetica", Font.PLAIN, MAIN_WINDOW_BUTTON_TEXT_SIZE);
 	private final Font recipeFormWindowLabelFont = new Font("Helvetica", Font.PLAIN, RECIPE_FORM_TEXT_SIZE);
@@ -62,6 +64,7 @@ public abstract class GUI {
 	volatile Ingredient[] ingredientsCollection;
 	JList<String> recipes;
 	volatile String[] tagsCollection;
+	volatile String[] generatedRecipesCollection;
 
 
 	public GUI() {
@@ -169,67 +172,31 @@ public abstract class GUI {
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setBackground(bgCol);
 
-		//TODO: consider recipe edit button??
-
-		Button load = new Button("Load");
+		Button loadFile = new Button("Load File");
 		JFileChooser fileChooser = new JFileChooser();
-		load.setPreferredSize(mainWindowButtonSize);
-		load.setFont(mainWindowButtonFont);
-		load.setToolTipText("Load a recipe file.");
-		load.addActionListener(e -> {
-			fileChooser.setCurrentDirectory(new File("./Recipes/"));
-			fileChooser.setDialogTitle("Select recipe file.");
-			fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		loadFile.setPreferredSize(mainWindowButtonSize);
+		loadFile.setFont(mainWindowButtonFont);
+		loadFile.setToolTipText("Load a recipe file.");
 
-			if (fileChooser.showOpenDialog(mainWindow) == JFileChooser.APPROVE_OPTION) { //if the user chose an
-				//acceptable file
-				File file = fileChooser.getSelectedFile();
-				try {
-					Recipe r = new RecipeParser().parseRecipeFromFile(file);
-					saveRecipe(r);
-					loadTags(r.getTags());
-					refreshRecipeList();
-				} catch (FileNotFoundException fileNotFoundException) {
-					//TODO: add dialog to say communicate error
-				} catch (Throwable t) {
-					t.printStackTrace();
-					//TODO: put dialog
-				}
-			}
-		});
+		Button loadFolder = new Button("Load Folder");
+		loadFolder.setPreferredSize(mainWindowButtonSize);
+		loadFolder.setFont(mainWindowButtonFont);
+		loadFolder.setToolTipText("Load the recipes folder.");
 
 		Button create = new Button("Create");
 		create.setPreferredSize(mainWindowButtonSize);
 		create.setFont(mainWindowButtonFont);
 		create.setToolTipText("Create recipe file by filling in recipe form.");
-		create.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				buildRecipeFormWindow();
-			} //open the form to create recipe file
-		});
 
 		Button generate = new Button("Generate");
 		generate.setPreferredSize(mainWindowButtonSize);
 		generate.setFont(mainWindowButtonFont);
 		generate.setToolTipText("Select some options, and generate recipes.");
-		generate.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				buildGeneratedRecipesWindow();
-			} //open generation window
-		});
 
 		Button quit = new Button("Quit");
 		quit.setPreferredSize(mainWindowButtonSize);
 		quit.setFont(mainWindowButtonFont);
 		quit.setToolTipText("Close program.");
-		quit.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				System.exit(0);
-			} //close program
-		});
 
 
 		buttonPanel.setLayout(new GridBagLayout());
@@ -239,17 +206,21 @@ public abstract class GUI {
 		constraints.gridx = 0;
 		constraints.gridy = 0;
 		constraints.insets = buttonPanelInsets;
-		buttonPanel.add(load, constraints);
+		buttonPanel.add(loadFile, constraints);
 
 		constraints.gridy = 1;
 		constraints.insets = buttonPanelInsets;
-		buttonPanel.add(create, constraints);
+		buttonPanel.add(loadFolder, constraints);
 
 		constraints.gridy = 2;
 		constraints.insets = buttonPanelInsets;
-		buttonPanel.add(generate, constraints);
+		buttonPanel.add(create, constraints);
 
 		constraints.gridy = 3;
+		constraints.insets = buttonPanelInsets;
+		buttonPanel.add(generate, constraints);
+
+		constraints.gridy = 4;
 		constraints.insets = buttonPanelQuitInsets;
 		buttonPanel.add(quit, constraints);
 
@@ -270,19 +241,9 @@ public abstract class GUI {
 
 		Button openRecipeButton = new Button("Open Recipe");
 		setFormComponentDetails(openRecipeButton);
-		openRecipeButton.addActionListener(e -> {
-			if (recipes.getSelectedIndex() != -1) {
-				buildRecipeDisplayWindow(getRecipes().getRecipeAt(recipes.getSelectedIndex()));
-			}
-		});
 
 		recipePanel.add(recipeScroll, BorderLayout.CENTER);
 		recipePanel.add(openRecipeButton, BorderLayout.SOUTH);
-
-
-
-		//TODO: figure out purpose of 3rd panel
-
 
 		mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //makes the instance finish when GUI is closed
 		mainWindow.setLayout(new FlowLayout(FlowLayout.CENTER, 30, 0));
@@ -293,6 +254,99 @@ public abstract class GUI {
 		mainWindow.setLocationRelativeTo(null); //centers the window on the screen
 		mainWindow.setVisible(true); //so we can see the gui
 
+		loadFile.addActionListener(e -> {
+			fileChooser.setCurrentDirectory(new File("./Recipes/"));
+			fileChooser.setDialogTitle("Select recipe file.");
+			fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+			if (fileChooser.showOpenDialog(mainWindow) == JFileChooser.APPROVE_OPTION) { //if the user chose an
+				//acceptable file
+				File file = fileChooser.getSelectedFile();
+				try {
+					Recipe r = new RecipeParser().parseRecipeFromFile(file);
+					saveRecipe(r);
+					loadTags(r.getTags());
+					refreshRecipeList();
+					recipes.setSelectedIndex(getRecipes().namesToArray().length - 1);
+				} catch (FileNotFoundException fileNotFoundException) {
+					JOptionPane fileNotFound = new JOptionPane();
+					fileNotFound.setOptionType(JOptionPane.DEFAULT_OPTION);
+					fileNotFound.setMessage("The file selected was not found. Please try again!");
+					JDialog fileNotFoundDialog = fileNotFound.createDialog("File Not Found");
+					fileNotFoundDialog.pack();
+					fileNotFoundDialog.setVisible(true);
+					int dialogChoice = (Integer) fileNotFound.getValue();
+					if (dialogChoice == JOptionPane.OK_OPTION) {
+						fileNotFoundDialog.setVisible(false);
+					}
+				} catch (Throwable t) {
+					t.printStackTrace();
+					JOptionPane parseError = new JOptionPane();
+					parseError.setOptionType(JOptionPane.DEFAULT_OPTION);
+					parseError.setMessage("There was an error while processing your file..! \n" + t.getMessage());
+					JDialog parseErrorDialog = parseError.createDialog("Recipe Parse Error");
+					parseErrorDialog.pack();
+					parseErrorDialog.setVisible(true);
+					int dialogChoice = (Integer) parseError.getValue();
+					if (dialogChoice == JOptionPane.OK_OPTION) {
+						parseErrorDialog.setVisible(false);
+					}
+				}
+			}
+		});
+
+		loadFolder.addActionListener(e -> {
+			File folder =  new File("./Recipes/");
+			File[] listOfFiles = folder.listFiles();
+
+			for (File f : listOfFiles) {
+				try {
+					Recipe r = new RecipeParser().parseRecipeFromFile(f);
+					saveRecipe(r);
+					loadTags(r.getTags());
+					refreshRecipeList();
+					recipes.setSelectedIndex(getRecipes().namesToArray().length - 1);
+				} catch (FileNotFoundException fileNotFoundException) {
+					JOptionPane fileNotFound = new JOptionPane();
+					fileNotFound.setOptionType(JOptionPane.DEFAULT_OPTION);
+					fileNotFound.setMessage("The file selected was not found. Please try again!");
+					JDialog fileNotFoundDialog = fileNotFound.createDialog("File Not Found");
+					fileNotFoundDialog.pack();
+					fileNotFoundDialog.setVisible(true);
+					int dialogChoice = (Integer) fileNotFound.getValue();
+					if (dialogChoice == JOptionPane.OK_OPTION) {
+						fileNotFoundDialog.setVisible(false);
+					}
+				} catch (Throwable t) {
+					t.printStackTrace();
+					JOptionPane parseError = new JOptionPane();
+					parseError.setOptionType(JOptionPane.DEFAULT_OPTION);
+					parseError.setMessage("There was an error while processing your file..! \n" + t.getMessage());
+					JDialog parseErrorDialog = parseError.createDialog("Recipe Parse Error");
+					parseErrorDialog.pack();
+					parseErrorDialog.setVisible(true);
+					int dialogChoice = (Integer) parseError.getValue();
+					if (dialogChoice == JOptionPane.OK_OPTION) {
+						parseErrorDialog.setVisible(false);
+					}
+				}
+			}
+		});
+
+		//open the form to create recipe file
+		create.addActionListener(e -> buildRecipeFormWindow());
+
+		//open generation window
+		generate.addActionListener(e -> buildGeneratedRecipesWindow());
+
+		//close program
+		quit.addActionListener(e -> System.exit(0));
+
+		openRecipeButton.addActionListener(e -> {
+			if (recipes.getSelectedIndex() != -1) {
+				buildRecipeDisplayWindow(getRecipes().getRecipeAt(recipes.getSelectedIndex()));
+			}
+		});
 
 	}
 
@@ -305,6 +359,7 @@ public abstract class GUI {
 
 		JTextArea recipe = new JTextArea();
 		recipe.setEditable(false);
+		recipe.setLineWrap(true);
 		setFormComponentDetails(recipe);
 		recipe.append(r.toString());
 		recipe.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
@@ -343,16 +398,186 @@ public abstract class GUI {
 	private void buildGeneratedRecipesWindow() {
 		generationWindow = new JFrame("Pick your generation options");
 
-		//TODO: code for generated recipes here
+		JPanel generationOptions = new JPanel();
+		generationOptions.setLayout(new BoxLayout(generationOptions, BoxLayout.X_AXIS));
 
-		//TODO: eventually add shopping list here or make another window method
+		JPanel specificOptions = new JPanel();
+		specificOptions.setLayout(new BoxLayout(specificOptions, BoxLayout.Y_AXIS));
+		JSpinner numServesSpinner = new JSpinner();
+		numServesSpinner.setModel(new SpinnerNumberModel(1, 0, 10, 1));
+		setFormComponentDetails(numServesSpinner);
 
+		JPanel timeOptions = new JPanel();
+		timeOptions.setLayout(new BoxLayout(timeOptions, BoxLayout.X_AXIS));
+		JSpinner maxHoursSpinner = new JSpinner();
+		maxHoursSpinner.setToolTipText("What's the max number of hours?");
+		maxHoursSpinner.setModel(new SpinnerNumberModel(0, 0, 100, 1));
+		setFormComponentDetails(maxHoursSpinner);
+		JSpinner maxMinutesSpinner = new JSpinner();
+		maxMinutesSpinner.setToolTipText("What's the max number of minutes?");
+		maxMinutesSpinner.setModel(new SpinnerNumberModel(0, 0, 59, 1));
+		setFormComponentDetails(maxMinutesSpinner);
+		timeOptions.add(Box.createHorizontalGlue());
+		timeOptions.add(maxHoursSpinner);
+		timeOptions.add(Box.createRigidArea(new Dimension(5, 10)));
+		timeOptions.add(maxMinutesSpinner);
+		timeOptions.add(Box.createHorizontalGlue());
+
+		Button generateButton = new Button("Generate a Recipe!");
+		setFormComponentDetails(generateButton);
+
+		specificOptions.add(setFormLabelDetails(new JLabel("Number of Serves (0 for any)")));
+		specificOptions.add(Box.createRigidArea(new Dimension(5,15)));
+		specificOptions.add(numServesSpinner);
+		specificOptions.add(Box.createRigidArea(new Dimension(5,15)));
+		specificOptions.add(setFormLabelDetails(new JLabel("Max Recipe Time (0:0 for any)")));
+		specificOptions.add(Box.createRigidArea(new Dimension(5,15)));
+		specificOptions.add(timeOptions);
+		specificOptions.add(Box.createRigidArea(new Dimension(5,15)));
+		specificOptions.add(generateButton);
+
+		JPanel tagOptions = new JPanel();
+		tagOptions.setLayout(new BoxLayout(tagOptions, BoxLayout.Y_AXIS));
+		JList<String> tagsList = new JList<>();
+		tagsList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		if (getAllTags().size() > 0) {
+			HashSet<String> tags = getAllTags();
+			String[] tagsListCollection = new String[tags.size() + 1];
+			tagsListCollection[0] = "None";
+			AtomicInteger i = new AtomicInteger(1);
+			tags.forEach(s -> tagsListCollection[i.getAndIncrement()] = s);
+			tagsList.setListData(tagsListCollection);
+		}
+		JScrollPane tagsScroll = new JScrollPane(tagsList);
+
+		tagOptions.add(setFormLabelDetails(new JLabel("Tags")));
+		tagOptions.add(Box.createRigidArea(new Dimension(5,5)));
+		tagOptions.add(tagsScroll);
+
+		generationOptions.add(Box.createRigidArea(new Dimension(20, 5)));
+		generationOptions.add(specificOptions);
+		generationOptions.add(Box.createRigidArea(new Dimension(10, 5)));
+		generationOptions.add(Box.createHorizontalGlue());
+		generationOptions.add(tagOptions);
+		generationOptions.add(Box.createRigidArea(new Dimension(20, 5)));
+
+		JPanel generations = new JPanel();
+		generations.setLayout(new BoxLayout(generations, BoxLayout.Y_AXIS));
+
+		JPanel listPadding = new JPanel();
+		listPadding.setLayout(new BoxLayout(listPadding, BoxLayout.X_AXIS));
+		JList<String> generatedRecipesList = new JList<>();
+		generatedRecipesCollection = new String[5];
+		generatedRecipesList.setListData(generatedRecipesCollection);
+		JScrollPane generatedRecipesScroll = new JScrollPane(generatedRecipesList);
+		listPadding.add(Box.createRigidArea(new Dimension(20, 5)));
+		listPadding.add(generatedRecipesScroll);
+		listPadding.add(Box.createRigidArea(new Dimension(20, 5)));
+
+		JPanel generationFunctionsButtons = new JPanel();
+		generationFunctionsButtons.setLayout(new BoxLayout(generationFunctionsButtons, BoxLayout.X_AXIS));
+		Button viewButton = new Button("View Recipe");
+		setFormComponentDetails(viewButton);
+		Button removeButton = new Button("Remove Recipe");
+		setFormComponentDetails(removeButton);
+		Button shoppingListButton = new Button("Shopping List");
+		setFormComponentDetails(shoppingListButton);
+
+		generationFunctionsButtons.add(Box.createRigidArea(new Dimension(20,5)));
+		generationFunctionsButtons.add(viewButton);
+		generationFunctionsButtons.add(Box.createHorizontalGlue());
+		generationFunctionsButtons.add(removeButton);
+		generationFunctionsButtons.add(Box.createHorizontalGlue());
+		generationFunctionsButtons.add(shoppingListButton);
+		generationFunctionsButtons.add(Box.createRigidArea(new Dimension(20,5)));
+
+		JLabel recipesLabel = setFormLabelDetails(new JLabel("Recipes"));
+		recipesLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		generations.add(recipesLabel);
+		generations.add(Box.createRigidArea(new Dimension(5,5)));
+		generations.add(listPadding);
+		generations.add(Box.createRigidArea(new Dimension(5,5)));
+		generations.add(generationFunctionsButtons);
+
+		JPanel mainPanel = new JPanel();
+		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+
+		mainPanel.add(Box.createRigidArea(new Dimension(5,15)));
+		mainPanel.add(generationOptions);
+		mainPanel.add(Box.createRigidArea(new Dimension(10,15)));
+		mainPanel.add(generations);
+		mainPanel.add(Box.createRigidArea(new Dimension(5,15)));
+
+		generationWindow.add(mainPanel);
 		generationWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		//TODO: setContentPane line, should probably make new panel, research it
-		//BREAKTHROUGH! PANELS ARE WHAT MAKE FUNKY LAYOUTS!!!
+
 		generationWindow.pack();
 		generationWindow.setVisible(true);
+
+		tagsList.addListSelectionListener(e -> {
+			if (tagsList.getSelectedIndex() == 0) {
+				tagsList.clearSelection();
+			}
+
+		});
+
+		generateButton.addActionListener( e -> {
+			Duration max = Duration.ofHours((int) maxHoursSpinner.getValue()).plus(Duration.ofMinutes((int) maxMinutesSpinner.getValue()));
+			int numServes = (int)numServesSpinner.getValue();
+			List<String> tags = tagsList.getSelectedValuesList();
+			String r = getRecipes().getRecipeWhere(numServes, max, tags);
+			if (r == null) {
+				JOptionPane noRecipe = new JOptionPane();
+				noRecipe.setOptionType(JOptionPane.DEFAULT_OPTION);
+				noRecipe.setMessage("No recipe exists with those specifications..!");
+				JDialog noRecipeDialog = noRecipe.createDialog("No Recipe Found!");
+				noRecipeDialog.pack();
+				noRecipeDialog.setVisible(true);
+				int dialogChoice = (Integer) noRecipe.getValue();
+				if (dialogChoice == JOptionPane.OK_OPTION) {
+					noRecipeDialog.setVisible(false);
+				}
+			}
+			 else {
+				if (generatedRecipesCollection[generatedRecipesCollection.length - 1] != null) {
+					//make list bigger
+					String[] temp = new String[generatedRecipesCollection.length + 5];
+					for (int i = 0; i < generatedRecipesCollection.length; i++) {
+						temp[i] = generatedRecipesCollection[i];
+					}
+					generatedRecipesCollection = temp;
+				}
+				for (int i = 0; i < generatedRecipesCollection.length; i++) {
+					if (generatedRecipesCollection[i] != null) {
+						continue;
+					}
+					generatedRecipesCollection[i] = r;
+					generatedRecipesList.setListData(generatedRecipesCollection);
+					break;
+				}
+			}
+		});
+
+		viewButton.addActionListener(e -> {
+			if (generatedRecipesList.getSelectedIndex() != -1) {
+				buildRecipeDisplayWindow(getRecipes().getRecipeAt(generatedRecipesList.getSelectedIndex()));
+			}
+		});
+
+		removeButton.addActionListener(e -> {
+			if (generatedRecipesList.getSelectedIndex() != -1) {
+				for (int i = generatedRecipesList.getSelectedIndex(); i < generatedRecipesCollection.length - 1; i++) {
+					generatedRecipesCollection[i] = generatedRecipesCollection[i+1];
+				}
+				generatedRecipesCollection[generatedRecipesCollection.length - 1] = null;
+			}
+		});
+
+		shoppingListButton.addActionListener(e -> {
+			//TODO: implement shopping list with new window
+		});
 	}
+
 
 	/**
 	 * Builds the window where a user can build a recipe file.
@@ -390,7 +615,6 @@ public abstract class GUI {
 		prepTimeMinuteInput.setModel(new SpinnerNumberModel(0, 0, 59, 1));
 		setFormComponentDetails(prepTimeMinuteInput);
 
-
 		JSpinner cookTimeHourInput = new JSpinner();
 		cookTimeHourInput.setToolTipText("Showing the hours, indicate how long the recipe takes to cook");
 		cookTimeHourInput.setModel(new SpinnerNumberModel(0, 0, 100, 1));
@@ -399,7 +623,6 @@ public abstract class GUI {
 		cookTimeMinuteInput.setToolTipText("Showing the minutes, indicate how long the recipe takes to cook");
 		cookTimeMinuteInput.setModel(new SpinnerNumberModel(0, 0, 59, 1));
 		setFormComponentDetails(cookTimeMinuteInput);
-
 
 		recipeStats.add(Box.createHorizontalGlue());
 		recipeStats.add(Box.createRigidArea(new Dimension(30, 0)));
@@ -699,9 +922,7 @@ public abstract class GUI {
 
 		tagEditor.addKeyListener(new KeyListener() {
 			@Override
-			public void keyTyped(KeyEvent e) {
-
-				}
+			public void keyTyped(KeyEvent e) { }
 			@Override public void keyPressed(KeyEvent e) { String text = tagEditor.getText();
 			if (!text.equals("")) {
 				DefaultComboBoxModel<String> m = new DefaultComboBoxModel<>();
@@ -829,6 +1050,9 @@ public abstract class GUI {
 	protected abstract void loadTags(ArrayList<String> tags);
 
 	protected abstract HashSet<String> getSuggestedTags(String tag);
+
+	protected abstract HashSet<String> getAllTags();
+
 
 	/**
 	 * Button innerclass allows more control over the appearance and actions of the buttons in the GUI,

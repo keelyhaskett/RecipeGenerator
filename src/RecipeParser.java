@@ -47,7 +47,7 @@ public class RecipeParser {
 					}
 					tag.append(token);
 				}
-				tags.add(tag.toString());
+				tags.add(tag.toString().toUpperCase());
 			} else {
 				throw new IllegalArgumentException("Incorrect Format");
 			}

@@ -48,6 +48,11 @@ public class RecipeGenerator extends GUI {
         return searchTrie(tag.toUpperCase(), 0, trie);
     }
 
+    @Override
+    protected HashSet<String> getAllTags() {
+        return recipes.getTags();
+    }
+
     private HashSet<String> searchTrie(String tag, int currentPos, TagTrieNode currentNode) {
         char c = tag.charAt(currentPos);
 

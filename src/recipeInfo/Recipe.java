@@ -17,6 +17,7 @@ public class Recipe {
     private String name;
     private InfoBlock info;
     private ArrayList<String> tags;
+    private Duration totTime;
 
     public Recipe(ArrayList<Ingredient> i, Method m, String n, InfoBlock info, ArrayList<String> t) {
         this.ingredients = new ArrayList<>(i);
@@ -24,11 +25,14 @@ public class Recipe {
         this.name = n;
         this.info = info;
         this.tags = new ArrayList<>(t);
+        totTime = info.getPrepTime().plus(info.getCookTime());
     }
 
-    public ArrayList<String> getTags() {
-        return tags;
-    }
+    public ArrayList<String> getTags() { return tags; }
+
+    public InfoBlock getInfo() { return info; }
+
+    public Duration getTotTime() { return totTime; }
 
     public String getName() { return name; }
 
@@ -62,7 +66,6 @@ public class Recipe {
         minutes = info.getCookTime().toMinutes() % 60;
         if (minutes < 10) {b.append(0);}
         b.append(minutes);
-        Duration totTime = info.getPrepTime().plus(info.getCookTime());
         b.append("   Total Time: ").append(((int) totTime.toMinutes()) / 60).append(":");
         minutes = totTime.toMinutes() % 60;
         if (minutes < 10) {b.append(0);}

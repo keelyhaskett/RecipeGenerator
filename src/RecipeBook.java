@@ -1,10 +1,11 @@
 import recipeInfo.Recipe;
-import recipeInfo.recipeCategories.RecipeClassifier;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class RecipeBook {
     private ArrayList<Recipe> recipes;
@@ -56,15 +57,32 @@ public class RecipeBook {
         return recipes.get(index);
     }
 
-    /**
-     * When passed an enum value, method will fetch all relevant recipes
-     * from the book and return them as a list.
-     * @param e     Enum value to find recipes that match
-     * @return      Returns a list of matching recipes
-     */
-    public List<Recipe> getRecipesWhere(RecipeClassifier e) {
+    public String getRecipeWhere (int numServes, Duration maxTime, List<String> tags) {
+        List<Recipe> recipeCandidates = getRecipesWhere(numServes, maxTime, tags);
+        if (recipeCandidates.isEmpty()) { return null; }
+        if (recipeCandidates.size() == 1) { return recipeCandidates.get(0).getName(); }
+        return recipeCandidates.get((int)Math.round(Math.random() * recipeCandidates.size() - 1)).getName();
+    }
 
-        //TODO: add functionality when descriptive enums are implemented (e.g type of meal, meat content, time etc)
-        return null;
+
+    /**
+     * @param numServes
+     * @param maxTime
+     * @param tags
+     * @return
+     */
+    public List<Recipe> getRecipesWhere(int numServes, Duration maxTime, List<String> tags) {
+        List<Recipe> potentialRecipes = new ArrayList<>(recipes);
+        if (numServes != 0) {
+            potentialRecipes = potentialRecipes.stream().filter(s -> s.getInfo().getServes() == numServes).collect(Collectors.toList());
+        }
+        if (maxTime.toMinutes() >= 1) {
+            potentialRecipes = potentialRecipes.stream().filter(s -> s.getTotTime().toMinutes() <= maxTime.toMinutes()).collect(Collectors.toList());
+        }
+        return potentialRecipes.stream().filter(s -> s.getTags().containsAll(tags)).collect(Collectors.toList());
+    }
+
+    public HashSet<String> getTags() {
+        return knownTags;
     }
 }
